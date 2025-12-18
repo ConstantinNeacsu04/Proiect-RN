@@ -2,7 +2,7 @@
 
 **Disciplina:** Rețele Neuronale  
 **Instituție:** POLITEHNICA București – FIIR  
-**Student:** [Nume Prenume]  
+**Student:** Neacsu Constantin-Cristian
 **Link Repository GitHub:** [URL complet]  
 **Data predării:** [Data]
 
@@ -484,5 +484,6 @@ Exemplu:
 3. Push: `git push origin main --tags`
 
 ---
+
 
 **Mult succes! Această etapă demonstrează că Sistemul vostru cu Inteligență Artificială (SIA) funcționează în condiții reale!**
