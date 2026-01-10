@@ -40,12 +40,12 @@ project-name/
 
 ### 2.1 Sursa datelor
 
-* **Origine:** Camera foto
-* **Modul de achiziție:** ✓ Senzori reali / ☐ Simulare / ☐ Fișier extern / ☐ Generare programatică
+* **Origine:** Google
+* **Modul de achiziție:** ☐ Senzori reali / ☐ Simulare / X Fișier extern / ☐ Generare programatică
 * **Perioada / condițiile colectării:**  Noiembrie 2025 - Ianuarie 2026
 ### 2.2 Caracteristicile dataset-ului
 
-* **Număr total de observații:** [Ex: 15,000]
+* **Număr total de observații:** 120   
 * **Număr de caracteristici (features):** 2 (forma si culoare)
 * **Tipuri de date:** ☐ Numerice / ☐ Categoriale / ☐ Temporale / ✓ Imagini
 * **Format fișiere:** ☐ CSV / ☐ TXT / ☐ JSON /  ✓PNG / ☐ Altele: [...]
