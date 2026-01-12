@@ -46,16 +46,16 @@ project-name/
 ### 2.2 Caracteristicile dataset-ului
 
 * **Număr total de observații:** 120   
-* **Număr de caracteristici (features):** 2 (forma si culoare)
+* **Număr de caracteristici (features):**Matrice de pixeli
 * **Tipuri de date:** ☐ Numerice / ☐ Categoriale / ☐ Temporale / ✓ Imagini
 * **Format fișiere:** ☐ CSV / ☐ TXT / ☐ JSON /  ✓PNG / ☐ Altele: [...]
 
 ### 2.3 Descrierea fiecărei caracteristici
 
-| **Caracteristică** | **Tip** | **Unitate** | **Descriere** | **Domeniu valori** |
-|-------------------|---------|-------------|---------------|--------------------|
-| feature_1 | imagine | pixel | forma piesei | 0–50
-| feature_2 | imagine | pixel | culoarea piesei | 0–50
+Caracteristică   |Tip  |Unitate     |Descriere                  |Domeniu valori
+Imagine Input    |Tensor |Pixeli (RGB)|Imaginea brută a frezei CNC|0 – 255 (int)
+Imagine Procesată|Tensor |Float       |Imaginea redimensionată și normalizată|0.0 – 1.0 (float)
+Etichetă (Label) |Categorial |Clasă       |Starea sculei (Conform / Neconform)|0 sau 1
 
 
 **Fișier recomandat:**  `data/README.md`
@@ -66,25 +66,16 @@ project-name/
 
 ### 3.1 Statistici descriptive aplicate
 
-* **Medie, mediană, deviație standard**
-* **Min–max și quartile**
-* **Distribuții pe caracteristici** (histograme)
-* **Identificarea outlinior** (IQR / percentile)
-
+Distribuția claselor: Calculul numărului de imagini per clasă (nr_conform vs nr_neconform) pentru a verifica balansul datelor.
+Dimensiuni: Verificarea consistenței dimensiunilor imaginilor înainte de redimensionare.
 ### 3.2 Analiza calității datelor
 
-* **Detectarea valorilor lipsă** (% pe coloană)
-* **Detectarea valorilor inconsistente sau eronate**
-* **Identificarea caracteristicilor redundante sau puternic corelate**
-
+Validarea vizuală a imaginilor încărcate (verificarea încadrării subiectului).
+Verificarea separării corecte în folderele conform și neconform.
 ### 3.3 Probleme identificate
 
-* [exemplu] Feature X are 8% valori lipsă
-* [exemplu] Distribuția feature Y este puternic neuniformă
-* [exemplu] Variabilitate ridicată în clase (class imbalance)
-
----
-
+Volum mic de date: Număr redus de imagini pentru Deep Learning, necesită Data Augmentation (posibilă îmbunătățire viitoare).
+Variabilitate: Posibile diferențe de iluminare sau unghi între pozele de antrenare și cele de test.
 ##  4. Preprocesarea Datelor
 
 ### 4.1 Curățarea datelor
@@ -97,22 +88,16 @@ project-name/
 
 ### 4.2 Transformarea caracteristicilor
 
-* **Normalizare:** Min–Max / Standardizare
-* **Encoding pentru variabile categoriale**
-* **Ajustarea dezechilibrului de clasă** (dacă este cazul)
-
+Redimensionare (Resizing): Toate imaginile sunt aduse la dimensiunea 180x180 px (IMG_SIZE).
+Normalizare (Rescaling): Valorile pixelilor sunt împărțite la 255 (layers.Rescaling(1./255)), transformând intervalul [0, 255] în [0, 1] pentru convergența mai rapidă a rețelei neuronale.
 ### 4.3 Structurarea seturilor de date
 
 **Împărțire recomandată:**
-* 70–80% – train
-* 10–15% – validation
-* 10–15% – test
-
+* 80% – Train (pentru antrenarea ponderilor modelului)
+* 20% – Validation (pentru monitorizarea performanței în timpul epocilor)
+* Test: Se realizează separat prin scriptul de verificare (verifica_scula) pe imagini complet noi.
 **Principii respectate:**
-* Stratificare pentru clasificare
-* Fără scurgere de informație (data leakage)
-* Statistici calculate DOAR pe train și aplicate pe celelalte seturi
-
+* Amestecare automat al datelor la antrenare.
 ### 4.4 Salvarea rezultatelor preprocesării
 
 * Date preprocesate în `data/processed/`
@@ -123,20 +108,15 @@ project-name/
 
 ##  5. Fișiere Generate în Această Etapă
 
-* `data/raw/` – date brute
-* `data/processed/` – date curățate & transformate
-* `data/train/`, `data/validation/`, `data/test/` – seturi finale
-* `src/preprocessing/` – codul de preprocesare
-* `data/README.md` – descrierea dataset-ului
-
----
-
+* dataset_auto/ – folderul cu datele brute organizate.
+* model_scule_cnc.keras – modelul final antrenat.
+* Istoric antrenare – disponibil pentru plotare grafice.
 ##  6. Stare Etapă (de completat de student)
 
-- [ ] Structură repository configurată
-- [ ] Dataset analizat (EDA realizată)
-- [ ] Date preprocesate
-- [ ] Seturi train/val/test generate
-- [ ] Documentație actualizată în README + `data/README.md`
+- [x] Structură repository configurată
+- [x] Dataset analizat (EDA realizată)
+- [x] Date preprocesate
+- [x] Seturi train/val/test generate
+- [x] Documentație actualizată în README + `data/README.md`
 
 ---
