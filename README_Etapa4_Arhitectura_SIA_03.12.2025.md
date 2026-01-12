@@ -37,7 +37,11 @@ Completați in acest readme tabelul următor cu **minimum 2-3 rânduri** care le
 
 | **Nevoie reală concretă** | **Cum o rezolvă SIA-ul vostru** | **Modul software responsabil** |
 |---------------------------|--------------------------------|--------------------------------|
-| Detectarea duratei de viata a frezei cnc | Analiza stare pe baza formei si a culorii frezei , acuratete tinta >90%| Data logging + RN + UI|
+|Prevenirea rebuturilor cauzate de scule uzate | Clasificare automată în timp real a imaginii frezei (Conform vs Neconform) cu o acuratețe țintă > 90%.|Modul Neural Network (Arhitectura CNN definită în model.py)|
+|---------------------------|--------------------------------|--------------------------------|
+|Reducerea timpului de verificare a operatorului |	Interfață rapidă care oferă un verdict vizual (Verde/Roșu) în < 2 secunde de la încărcarea pozei. |	Modul UI / Web Service (verifica_scula - vizualizare Matplotlib)|
+|---------------------------|--------------------------------|--------------------------------|
+Colectarea datelor pentru trasabilitate |	Organizarea automată a imaginilor încărcate în foldere structurate pentru re-antrenare viitoare. |	Modul Data Acquisition (incarca_imagini + shutil)|
 **Instrucțiuni:**
 - Fiți concreti (nu vagi): "detectare fisuri sudură" ✓, "îmbunătățire proces" ✗
 - Specificați metrici măsurabile: "< 2 secunde", "> 95% acuratețe", "reducere 20%"
