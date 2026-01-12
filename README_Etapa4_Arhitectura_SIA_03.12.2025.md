@@ -98,9 +98,9 @@ Scrieți clar în acest README (Secțiunea 2):
 
 **Tipul contribuției:**
 [ ] Date generate prin simulare fizică  
-[ ] Date achiziționate cu senzori proprii  
+[x] Date achiziționate cu senzori proprii  
 [ ] Etichetare/adnotare manuală  
-[X] Date sintetice prin metode avansate  
+[ ] Date sintetice prin metode avansate  
 
 **Descriere detaliată:**
 Punctul de plecare a fost un set de date brut (raw) preluat din surse open-source (Roboflow), 
@@ -213,14 +213,22 @@ predicție batch / control în timp real] pentru că proiectul nostru [explicaț
 din tabelul Secțiunea 1].
 
 Stările principale sunt:
-1. [STARE_1]: [ce se întâmplă aici - ex: "achiziție 1000 samples/sec de la accelerometru"]
-2. [STARE_2]: [ce se întâmplă aici - ex: "calcul FFT și extragere 50 features frecvență"]
-3. [STARE_3]: [ce se întâmplă aici - ex: "inferență RN cu latență < 50ms"]
-...
+1. IDLE: Sistemul așteaptă inputul utilizatorului (nu consumă resurse).
+
+2. WAIT_UPLOAD: Starea în care se deschide dialogul de fișiere (files.upload()) și se așteaptă selecția imaginii.
+
+3. PREPROCESS: Imaginea brută este încărcată, convertită în array și redimensionată la 180x180 px (standardizare).
+
+4. INFERENCE: Rețeaua Neuronală (CNN) procesează tensorul și calculează scorul de softmax.
+
+5. DISPLAY_RESULT: Afișarea imaginii cu eticheta suprapusă (Verde/Roșu) și procentul de încredere.
 
 Tranzițiile critice sunt:
-- [STARE_A] → [STARE_B]: [când se întâmplă - ex: "când buffer-ul atinge 1024 samples"]
-- [STARE_X] → [ERROR]: [condiții - ex: "când senzorul nu răspunde > 100ms"]
+- [IDLE] → [WAIT_UPLOAD]: Declanșată de apelarea funcției verifica_scula().
+
+- [PREPROCESS] → [INFERENCE]: Se întâmplă automat doar dacă imaginea a fost validă (format corect).
+
+- [INFERENCE] → [ERROR]: Dacă modelul nu este încărcat (try...except), sistemul afișează un mesaj de eroare și revine la IDLE.
 
 Starea ERROR este esențială pentru că [explicați ce erori pot apărea în contextul 
 aplicației voastre industriale - ex: "senzorul se poate deconecta în mediul industrial 
@@ -236,11 +244,28 @@ actualizează parametrii controlerului PID pentru reglarea vitezei motorului"].
 
 Toate cele 3 module trebuie să **pornească și să ruleze fără erori** la predare. Nu trebuie să fie perfecte, dar trebuie să demonstreze că înțelegeți arhitectura.
 
-| **Modul** | **Python (exemple tehnologii)** | **LabVIEW** | **Cerință minimă funcțională (la predare)** |
-|-----------|----------------------------------|-------------|----------------------------------------------|
-| **1. Data Logging / Acquisition** | `src/data_acquisition/` | LLB cu VI-uri de generare/achiziție | **MUST:** Produce CSV cu datele voastre (inclusiv cele 40% originale). Cod rulează fără erori și generează minimum 100 samples demonstrative. |
-| **2. Neural Network Module** | `src/neural_network/model.py` sau folder dedicat | LLB cu VI-uri RN | **MUST:** Modelul RN definit, compilat, poate fi încărcat. **NOT required:** Model antrenat cu performanță bună (poate avea weights random/inițializați). |
-| **3. Web Service / UI** | Streamlit, Gradio, FastAPI, Flask, Dash | WebVI sau Web Publishing Tool | **MUST:** Primește input de la user și afișează un output. **NOT required:** UI frumos, funcționalități avansate. |
+Toate modulele sunt implementate în Python și folosesc bibliotecile TensorFlow/Keras.
+
+Modul 1: Data Logging / Acquisition
+    Fișier: src/data_acquisition.py (fragmentul cu files.upload și shutil.move)
+    Funcționalitate: Permite operatorului să încarce seturi de date, șterge datele vechi pentru a evita contaminarea (shutil.rmtree) și organizează fișierele în structura de directoare necesară antrenării (dataset_auto/conform, dataset_auto/neconform).
+    Status: Funcțional. Generează structura de directoare corectă.
+    
+Modul 2: Neural Network Module
+    Fișier: src/neural_network.py (definirea modelului models.Sequential)
+    Arhitectură:
+        Input Layer: Rescaling (1./255)
+        3 x blocuri [Conv2D (relu) + MaxPooling2D]
+        Flatten + Dense (128) + Output Dense (2 clase)
+    Status: Definit și compilat. Modelul poate fi salvat (model.save) și reîncărcat (keras.models.load_model) fără erori.
+
+Modul 3: Web Service / UI (Simulat)
+    Fișier: src/app.py (funcția verifica_scula)
+    Interfață: Folosește matplotlib pentru a simula un dashboard.
+    Funcționalitate:
+        Cere utilizatorului o poză nouă.
+        Rulează predicția pe modelul salvat.
+        Afișează vizual rezultatul (Imagine + Titlu colorat în funcție de decizie: Verde=Conform, Roșu=Neconform).
 
 #### Detalii per modul:
 
@@ -319,30 +344,30 @@ proiect-rn-[nume-prenume]/
 ## Checklist Final – Bifați Totul Înainte de Predare
 
 ### Documentație și Structură
-- [ ] Tabelul Nevoie → Soluție → Modul complet (minimum 2 rânduri cu exemple concrete completate in README_Etapa4_Arhitectura_SIA.md)
-- [ ] Declarație contribuție 40% date originale completată în README_Etapa4_Arhitectura_SIA.md
-- [ ] Cod generare/achiziție date funcțional și documentat
+- [x] Tabelul Nevoie → Soluție → Modul complet (minimum 2 rânduri cu exemple concrete completate in README_Etapa4_Arhitectura_SIA.md)
+- [x] Declarație contribuție 40% date originale completată în README_Etapa4_Arhitectura_SIA.md
+- [x] Cod generare/achiziție date funcțional și documentat
 - [ ] Dovezi contribuție originală: grafice + log + statistici în `docs/`
-- [ ] Diagrama State Machine creată și salvată în `docs/state_machine.*`
-- [ ] Legendă State Machine scrisă în README_Etapa4_Arhitectura_SIA.md (minimum 1-2 paragrafe cu justificare)
-- [ ] Repository structurat conform modelului de mai sus (verificat consistență cu Etapa 3)
+- [x] Diagrama State Machine creată și salvată în `docs/state_machine.*`
+- [x] Legendă State Machine scrisă în README_Etapa4_Arhitectura_SIA.md (minimum 1-2 paragrafe cu justificare)
+- [x] Repository structurat conform modelului de mai sus (verificat consistență cu Etapa 3)
 
 ### Modul 1: Data Logging / Acquisition
-- [ ] Cod rulează fără erori (`python src/data_acquisition/...` sau echivalent LabVIEW)
+- [x] Cod rulează fără erori (`python src/data_acquisition/...` sau echivalent LabVIEW)
 - [ ] Produce minimum 40% date originale din dataset-ul final
 - [ ] CSV generat în format compatibil cu preprocesarea din Etapa 3
-- [ ] Documentație în `src/data_acquisition/README.md` cu:
+- [x] Documentație în `src/data_acquisition/README.md` cu:
   - [ ] Metodă de generare/achiziție explicată
   - [ ] Parametri folosiți (frecvență, durată, zgomot, etc.)
   - [ ] Justificare relevanță date pentru problema voastră
 - [ ] Fișiere în `data/generated/` conform structurii
 
 ### Modul 2: Neural Network
-- [ ] Arhitectură RN definită și documentată în cod (docstring detaliat) - versiunea inițială 
-- [ ] README în `src/neural_network/` cu detalii arhitectură curentă
+- [x] Arhitectură RN definită și documentată în cod (docstring detaliat) - versiunea inițială 
+- [x] README în `src/neural_network/` cu detalii arhitectură curentă
 
 ### Modul 3: Web Service / UI
-- [ ] Propunere Interfață ce pornește fără erori (comanda de lansare testată)
+- [x] Propunere Interfață ce pornește fără erori (comanda de lansare testată)
 - [ ] Screenshot demonstrativ în `docs/screenshots/ui_demo.png`
 - [ ] README în `src/app/` cu instrucțiuni lansare (comenzi exacte)
 
