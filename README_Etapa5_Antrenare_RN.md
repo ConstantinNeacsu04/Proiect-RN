@@ -26,11 +26,11 @@ Această etapă corespunde punctului **6. Configurarea și antrenarea modelului 
 **Înainte de a începe Etapa 5, verificați că aveți din Etapa 4:**
 
 - [x] **State Machine** definit și documentat în `docs/state_machine.*`
-- [ ] **Contribuție ≥40% date originale** în `data/generated/` (verificabil)
-- [ ] **Modul 1 (Data Logging)** funcțional - produce CSV-uri
-- [ ] **Modul 2 (RN)** cu arhitectură definită dar NEANTRENATĂ (`models/untrained_model.h5`)
-- [ ] **Modul 3 (UI/Web Service)** funcțional cu model dummy
-- [ ] **Tabelul "Nevoie → Soluție → Modul"** complet în README Etapa 4
+- [x] **Contribuție ≥40% date originale** în `data/generated/` (verificabil)
+- [x] **Modul 1 (Data Logging)** funcțional - produce CSV-uri
+- [x] **Modul 2 (RN)** cu arhitectură definită dar NEANTRENATĂ (`models/untrained_model.h5`)
+- [x] **Modul 3 (UI/Web Service)** funcțional cu model dummy
+- [x] **Tabelul "Nevoie → Soluție → Modul"** complet în README Etapa 4
 
 ** Dacă oricare din punctele de mai sus lipsește → reveniți la Etapa 4 înainte de a continua.**
 
@@ -97,13 +97,13 @@ Completați tabelul cu hiperparametrii folosiți și **justificați fiecare aleg
 
 | **Hiperparametru** | **Valoare Aleasă** | **Justificare** |
 |--------------------|-------------------|-----------------|
-| Learning rate | Ex: 0.001 | Valoare standard pentru Adam optimizer, asigură convergență stabilă |
-| Batch size | Ex: 32 | Compromis memorie/stabilitate pentru N=[numărul vostru] samples |
-| Number of epochs | Ex: 50 | Cu early stopping după 10 epoci fără îmbunătățire |
-| Optimizer | Ex: Adam | Adaptive learning rate, potrivit pentru RN cu [numărul vostru] straturi |
-| Loss function | Ex: Categorical Crossentropy | Clasificare multi-class cu K=[numărul vostru] clase |
-| Activation functions | Ex: ReLU (hidden), Softmax (output) | ReLU pentru non-linearitate, Softmax pentru probabilități clase |
-
+| Learning rate | 0.001 | Valoare standard pentru Adam optimizer, oferă un echilibru bun între viteza de convergență și stabilitate pe dataset-uri de dimensiuni mici/medii. |
+| Batch size | 32 | Având un dataset de aprox. 120-150 imagini, batch-ul de 32 permite actualizarea greutăților de suficient de multe ori pe epocă, fără a introduce prea mult zgomot în gradient și fără a suprasolicita memoria RAM (Colab).|
+| Number of epochs | 15 | După 15 epoci, loss-ul pe antrenare se stabilizează, iar continuarea antrenării ar duce la overfitting (modelul memorează imaginile în loc să învețe trăsăturile uzurii).|
+| Optimizer | Adam | funcționează excelent pentru rețele convoluționale (CNN), ajustând rata de învățare pentru fiecare parametru individual. |
+| Loss function | Sparse Categorical Crossentropy | Deoarece avem o clasificare binară/multi-class cu etichete sub formă de numere întregi (0='conform', 1='neconform')|
+| Activation functions | ReLU (hidden), Linear/Logits (output) |ReLU în straturile ascunse previne problema "vanishing gradient" și accelerează antrenarea. Output-ul este interpretat ulterior prin Softmax la inferență. |
+|Input Shape| (180, 180) | Compromis între calitatea detaliilor vizuale (necesare pentru a vedea uzura fină a muchiei tăietoare) și viteza de procesare.|
 **Justificare detaliată batch size (exemplu):**
 ```
 Am ales batch_size=32 pentru că avem N=15,000 samples → 15,000/32 ≈ 469 iterații/epocă.
@@ -487,4 +487,5 @@ Exemplu:
 
 
 **Mult succes! Această etapă demonstrează că Sistemul vostru cu Inteligență Artificială (SIA) funcționează în condiții reale!**
+
 
