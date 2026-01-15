@@ -395,9 +395,9 @@ streamlit run src/app/main.py
 - [ ] Scaler din Etapa 3 folosit consistent (`config/preprocessing_params.pkl`)
 
 ### Antrenare Model - Nivel 1 (OBLIGATORIU)
-- [ ] Model antrenat de la ZERO (nu fine-tuning pe model pre-antrenat)
+- [x] Model antrenat de la ZERO (nu fine-tuning pe model pre-antrenat)
 - [x] Minimum 10 epoci rulate (verificabil în `results/training_history.csv`)
-- [ ] Tabel hiperparametri + justificări completat în acest README
+- [x] Tabel hiperparametri + justificări completat în acest README
 - [x] Metrici calculate pe test set: **Accuracy ≥65%**, **F1 ≥0.60**
 - [ ] Model salvat în `models/trained_model.h5` (sau .pt, .lvmodel)
 - [ ] `results/training_history.csv` există cu toate epoch-urile
@@ -487,5 +487,6 @@ Exemplu:
 
 
 **Mult succes! Această etapă demonstrează că Sistemul vostru cu Inteligență Artificială (SIA) funcționează în condiții reale!**
+
 
 
