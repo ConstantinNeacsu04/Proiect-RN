@@ -2,8 +2,8 @@
 
 **Disciplina:** Rețele Neuronale  
 **Instituție:** POLITEHNICA București – FIIR  
-**Student:** [Nume Prenume]  
-**Data:** [Data]  
+**Student:** Neacsu Constantin-Cristian
+**Data:** 22.01.2026
 
 ---
 
@@ -40,13 +40,13 @@ project-name/
 
 ### 2.1 Sursa datelor
 
-* **Origine:** [Descriere sursă date - ex: senzori robot, dataset public, simulare]
-* **Modul de achiziție:** ☐ Senzori reali / ☐ Simulare / ☐ Fișier extern / ☐ Generare programatică
+* **Origine:** dataset public
+* **Modul de achiziție:** ☐ Senzori reali / ☐ Simulare / X Fișier extern / ☐ Generare programatică
 * **Perioada / condițiile colectării:** [Ex: Noiembrie 2024 - Ianuarie 2025, condiții experimentale specifice]
 
 ### 2.2 Caracteristicile dataset-ului
 
-* **Număr total de observații:** [Ex: 15,000]
+* **Număr total de observații:** 120
 * **Număr de caracteristici (features):** [Ex: 12]
 * **Tipuri de date:** ☐ Numerice / ☐ Categoriale / ☐ Temporale / ☐ Imagini
 * **Format fișiere:** ☐ CSV / ☐ TXT / ☐ JSON / ☐ PNG / ☐ Altele: [...]
