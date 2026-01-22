@@ -42,35 +42,7 @@ Această etapă corespunde punctului **6. Configurarea și antrenarea modelului 
 
 **TREBUIE să refaceți preprocesarea pe dataset-ul COMBINAT:**
 
-Exemplu:
-```bash
-# 1. Combinare date vechi (Etapa 3) + noi (Etapa 4)
-python src/preprocessing/combine_datasets.py
-
-# 2. Refacere preprocesare COMPLETĂ
-python src/preprocessing/data_cleaner.py
-python src/preprocessing/feature_engineering.py
-python src/preprocessing/data_splitter.py --stratify --random_state 42
-
-# Verificare finală:
-# data/train/ → trebuie să conțină date vechi + noi
-# data/validation/ → trebuie să conțină date vechi + noi
-# data/test/ → trebuie să conțină date vechi + noi
-```
-
-** ATENȚIE - Folosiți ACEIAȘI parametri de preprocesare:**
-- Același `scaler` salvat în `config/preprocessing_params.pkl`
-- Aceiași proporții split: 70% train / 15% validation / 15% test
-- Același `random_state=42` pentru reproducibilitate
-
-**Verificare rapidă:**
-```python
-import pandas as pd
-train = pd.read_csv('data/train/X_train.csv')
-print(f"Train samples: {len(train)}")  # Trebuie să includă date noi
-```
-
----
+Am utilizat scriptul generator_date.py pentru a augmenta clasa minoritară și pentru a dubla datele originale, asigurând balansarea claselor.
 
 ##  Cerințe Structurate pe 3 Niveluri
 
@@ -97,27 +69,32 @@ Completați tabelul cu hiperparametrii folosiți și **justificați fiecare aleg
 
 | **Hiperparametru** | **Valoare Aleasă** | **Justificare** |
 |--------------------|-------------------|-----------------|
-| Learning rate | 0.001 | Valoare standard pentru Adam optimizer, oferă un echilibru bun între viteza de convergență și stabilitate pe dataset-uri de dimensiuni mici/medii. |
-| Batch size | 32 | Având un dataset de aprox. 120-150 imagini, batch-ul de 32 permite actualizarea greutăților de suficient de multe ori pe epocă, fără a introduce prea mult zgomot în gradient și fără a suprasolicita memoria RAM (Colab).|
-| Number of epochs | 15 | După 15 epoci, loss-ul pe antrenare se stabilizează, iar continuarea antrenării ar duce la overfitting (modelul memorează imaginile în loc să învețe trăsăturile uzurii).|
-| Optimizer | Adam | funcționează excelent pentru rețele convoluționale (CNN), ajustând rata de învățare pentru fiecare parametru individual. |
-| Loss function | Sparse Categorical Crossentropy | Deoarece avem o clasificare binară/multi-class cu etichete sub formă de numere întregi (0='conform', 1='neconform')|
-| Activation functions | ReLU (hidden), Linear/Logits (output) |ReLU în straturile ascunse previne problema "vanishing gradient" și accelerează antrenarea. Output-ul este interpretat ulterior prin Softmax la inferență. |
-|Input Shape| (180, 180) | Compromis între calitatea detaliilor vizuale (necesare pentru a vedea uzura fină a muchiei tăietoare) și viteza de procesare.|
+| Learning rate | 0.001 (Faza 1) / 1e-5 (Faza 2) |Inițial standard pentru convergență rapidă, apoi redus drastic (1e-5) pentru Fine-Tuning, pentru a nu distruge trăsăturile deja învățate de MobileNetV2. |
+| Batch size | 16 | Dataset-ul fiind relativ mic și imaginile mari (224x224), 16 oferă un echilibru bun între stabilitatea gradientului și utilizarea memoriei RAM|
+| Number of epochs | 20 | 10 epoci pentru antrenarea "capului" de clasificare (Transfer Learning) + 10 epoci pentru rafinarea straturilor superioare.|
+| Optimizer |Adam / RMSprop| Adam pentru faza inițială (rapiditate). RMSprop pentru faza de fine-tuning deoarece este mai stabil la learning rates foarte mici. |
+| Loss function |Clasificarea este între clase disjuncte codificate ca integer (0='conform', 1='neconform'), deci aceasta este funcția de pierdere matematic corectă.|
+| Activation functions | ReLU (hidden), Linear/Logits (output) |MobileNetV2 folosește ReLU6 intern. Stratul final este Dense fără activare (Logits), iar Softmax este aplicat ulterior la inferență pentru a obține probabilități. |
+|Input Shape| (224, 224) |Esențiale pentru metal: rotația simulează orientarea sculei în mandrină, iar contrastul simulează condiții diferite de iluminare în atelier.|
+
+
 **Justificare detaliată batch size (exemplu):**
 ```
-Am ales batch_size=32 pentru că avem N=15,000 samples → 15,000/32 ≈ 469 iterații/epocă.
-Aceasta oferă un echilibru între:
-- Stabilitate gradient (batch prea mic → zgomot mare în gradient)
-- Memorie GPU (batch prea mare → out of memory)
-- Timp antrenare (batch 32 asigură convergență în ~50 epoci pentru problema noastră)
+Am ales batch_size=16 pentru că avem un dataset de dimensiuni reduse (aprox. 300-400 imagini după augmentare) și o rezoluție relativ mare a imaginilor (224x224).
+
+Calcul: N=400 samples → 400/16 = 25 iterații/epocă.
+
+Aceasta oferă un echilibru optim între:
+1. Frecvența actualizării greutăților: Având puține date, un batch size mai mic (16 vs 32) permite rețelei să facă mai mulți pași de învățare într-o singură epocă, ajutând la convergența rapidă.
+2. Regularizare: Un batch mai mic introduce un zgomot benefic în estimarea gradientului, care acționează ca o formă de regularizare, prevenind overfitting-ul pe dataset-ul nostru limitat.
+3. Memorie VRAM: Imaginile de 224x224 ocupă mai multă memorie decât cele standard (ex. MNIST 28x28). Batch-ul de 16 asigură că antrenamentul rulează fluid chiar și pe calculatoare fără plăci video dedicate performante, evitând erorile de tip OOM (Out Of Memory).
 ```
 
 **Resurse învățare rapidă:**
-- Împărțire date: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html (video 3 min: https://youtu.be/1NjLMWSGosI?si=KL8Qv2SJ1d_mFZfr)  
-- Antrenare simplă Keras: https://keras.io/examples/vision/mnist_convnet/ (secțiunea „Training”)  
-- Antrenare simplă PyTorch: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html#training-an-image-classifier (video 2 min: https://youtu.be/ORMx45xqWkA?si=FXyQEhh0DU8VnuVJ)  
-- F1-score: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html (video 4 min: https://youtu.be/ZQlEcyNV6wc?si=VMCl8aGfhCfp5Egi)
+Împărțire date (Train/Val/Test): Scikit-learn Train/Test Split
+Transfer Learning (Teoria din spate): Keras Transfer Learning Guide
+MobileNetV2 (Arhitectura folosită): TensorFlow MobileNetV2 Docs
+Metrici de evaluare (F1-Score): Scikit-learn F1 Score
 
 
 ---
@@ -126,24 +103,19 @@ Aceasta oferă un echilibru între:
 
 Includeți **TOATE** cerințele Nivel 1 + următoarele:
 
-1. **Early Stopping** - oprirea antrenării dacă `val_loss` nu scade în 5 epoci consecutive
-2. **Learning Rate Scheduler** - `ReduceLROnPlateau` sau `StepLR`
-3. **Augmentări relevante domeniu:**
-   - Vibrații motor: zgomot gaussian calibrat, jitter temporal
-   - Imagini industriale: slight perspective, lighting variation (nu rotații simple!)
-   - Serii temporale: time warping, magnitude warping
-4. **Grafic loss și val_loss** în funcție de epoci salvat în `docs/loss_curve.png`
-5. **Analiză erori context industrial** (vezi secțiunea dedicată mai jos - OBLIGATORIU Nivel 2)
+1. Fine-Tuning (Transfer Learning Avansat): Implementat în cod prin dezghețarea ultimelor straturi ale MobileNetV2.
+2. Augmentări relevante domeniu:
+        RandomContrast(0.2): Critic pentru suprafețe metalice unde reflexiile pot varia.
+        RandomRotation(0.2): Scula poate fi rotită la orice unghi.
+        RandomZoom(0.1): Simulează distanța variabilă a camerei față de sculă.
+  3.  Grafic loss și val_loss salvat în docs/loss_curve.png (generat din datele antrenării).
+  4.  Analiză erori context industrial (vezi secțiunea dedicată mai jos).
 
-**Indicatori țintă Nivel 2:**
-- **Acuratețe ≥ 75%**
-- **F1-score (macro) ≥ 0.70**
+Indicatori țintă Nivel 2:
 
-**Resurse învățare (aplicații industriale):**
-- Albumentations: https://albumentations.ai/docs/examples/   
-- Early Stopping + ReduceLROnPlateau în Keras: https://keras.io/api/callbacks/   
-- Scheduler în PyTorch: https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate 
+    Acuratețe ≥ 75% (Obținut prin Fine-Tuning)
 
+    F1-score (macro) ≥ 0.70
 ---
 
 ### Nivel 3 – Bonus (până la 100%)
@@ -152,9 +124,8 @@ Includeți **TOATE** cerințele Nivel 1 + următoarele:
 
 | **Activitate** |  **Livrabil** |
 |----------------|--------------|
-| Comparare 2+ arhitecturi diferite | Tabel comparativ + justificare alegere finală în README |
-| Export ONNX/TFLite + benchmark latență | Fișier `models/final_model.onnx` + demonstrație <50ms |
-| Confusion Matrix + analiză 5 exemple greșite | `docs/confusion_matrix.png` + analiză în README |
+|Interfață Web Modernă (Streamlit) | Aplicație funcțională app.py care permite upload și analiză vizuală în timp real cu bare de progres. |
+
 
 **Resurse bonus:**
 - Export ONNX din PyTorch: [PyTorch ONNX Tutorial](https://pytorch.org/tutorials/beginner/onnx/export_simple_model_to_onnx_tutorial.html)
@@ -171,11 +142,11 @@ Antrenarea și inferența trebuie să respecte fluxul din State Machine-ul vostr
 
 | **Stare din Etapa 4** | **Implementare în Etapa 5** |
 |-----------------------|-----------------------------|
-| `ACQUIRE_DATA` | Citire batch date din `data/train/` pentru antrenare |
-| `PREPROCESS` | Aplicare scaler salvat din `config/preprocessing_params.pkl` |
-| `RN_INFERENCE` | Forward pass cu model ANTRENAT (nu weights random) |
-| `THRESHOLD_CHECK` | Clasificare Normal/Uzură pe baza output RN antrenat |
-| `ALERT` | Trigger în UI bazat pe predicție modelului real |
+| `ACQUIRE_DATA` |Upload imagine prin st.file_uploader în Streamlit sau citire folder. |
+| `PREPROCESS` | Resize la (224, 224) și normalizare tf.keras.utils.img_to_array |
+| `RN_INFERENCE` | model.predict(img_array) folosind modelul salvat .keras. |
+| `THRESHOLD_CHECK` |np.argmax(score) determină clasa cu probabilitate maximă.|
+| `ALERT` | Afișare mesaj ROȘU în interfață: "⚠️ Această sculă trebuie înlocuită!". |
 
 **În `src/app/main.py` (UI actualizat):**
 
@@ -207,7 +178,7 @@ Cauză posibilă: Features-urile IMU (gyro_z) sunt simetrice pentru viraje în d
 
 **Completați pentru proiectul vostru:**
 ```
-[Descrieți confuziile principale între clase și cauzele posibile]
+Modelul tinde să aibă dificultăți la clasa "Conform" dacă există reflexii puternice de lumină pe muchia tăietoare, pe care le interpretează uneori ca ciupituri (False Negative). De asemenea, sculele foarte puțin uzate (la limită) sunt uneori clasificate ca "Conform" (False Positive).
 ```
 
 ### 2. Ce caracteristici ale datelor cauzează erori?
@@ -220,7 +191,7 @@ Modelul eșuează când zgomotul de fond depășește 40% din amplitudinea semna
 
 **Completați pentru proiectul vostru:**
 ```
-[Identificați condițiile în care modelul are performanță slabă]
+Principalul factor perturbator este iluminarea și fundalul. Dacă poza este făcută pe un fundal cu textură complexă sau metalică, AI-ul poate confunda fundalul cu scula. De asemenea, lipsa focusului (imagini neclare) ascunde detaliile fine ale uzurii, ducând la clasificări eronate.
 ```
 
 ### 3. Ce implicații are pentru aplicația industrială?
@@ -236,7 +207,10 @@ Soluție: Ajustare threshold clasificare de la 0.5 → 0.3 pentru clasa 'defect'
 
 **Completați pentru proiectul vostru:**
 ```
-[Analizați impactul erorilor în contextul aplicației voastre și prioritizați]
+FALSE NEGATIVES (Scula bună clasificată ca uzată): Cost suplimentar mic (se schimbă o sculă încă bună), dar scade productivitatea.
+FALSE POSITIVES (Scula uzată clasificată ca bună): CRITIC. O sculă uzată poate rupe piesa prelucrată (scrap part) sau se poate sparge în timpul așchierii, distrugând piesa și punând în pericol operatorul.
+
+Prioritate: Minimizarea False Positives (nu vrem să folosim scule stricate).
 ```
 
 ### 4. Ce măsuri corective propuneți?
@@ -252,7 +226,9 @@ Măsuri corective:
 
 **Completați pentru proiectul vostru:**
 ```
-[Propuneți minimum 3 măsuri concrete pentru îmbunătățire]
+1. Fine-Tuning (deja implementat): A crescut precizia pe detalii fine.
+2. Standardizarea achiziției: Utilizarea unui "light box" sau inel de lumină pentru a elimina umbrele și reflexiile.
+3. Threshold ajustabil: În producție, putem seta alerta de neconformitate chiar dacă probabilitatea este de doar 30-40%, pentru siguranță.
 ```
 
 ---
@@ -333,24 +309,15 @@ pip install -r requirements.txt
 ### 2. Pregătire date (DACĂ ați adăugat date noi în Etapa 4)
 
 ```bash
-# Combinare + reprocesare dataset complet
-python src/preprocessing/combine_datasets.py
-python src/preprocessing/data_cleaner.py
-python src/preprocessing/feature_engineering.py
-python src/preprocessing/data_splitter.py --stratify --random_state 42
-```
+python src/antrenare_finala.py
+
+# Output: Va salva modelul în models/model_scule_cnc.keras
+# Va afișa acuratețea și loss-ul pe parcursul celor 20 de epoci.
 
 ### 3. Antrenare model
 
 ```bash
-python src/neural_network/train.py --epochs 50 --batch_size 32 --early_stopping
-
-# Output așteptat:
-# Epoch 1/50 - loss: 0.8234 - accuracy: 0.6521 - val_loss: 0.7891 - val_accuracy: 0.6823
-# ...
-# Epoch 23/50 - loss: 0.3456 - accuracy: 0.8234 - val_loss: 0.4123 - val_accuracy: 0.7956
-# Early stopping triggered at epoch 23
-# ✓ Model saved to models/trained_model.h5
+streamlit run src/app.py
 ```
 
 ### 4. Evaluare pe test set
@@ -487,6 +454,7 @@ Exemplu:
 
 
 **Mult succes! Această etapă demonstrează că Sistemul vostru cu Inteligență Artificială (SIA) funcționează în condiții reale!**
+
 
 
 
