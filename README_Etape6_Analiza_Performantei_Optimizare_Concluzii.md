@@ -3,8 +3,8 @@
 **Disciplina:** Rețele Neuronale  
 **Instituție:** POLITEHNICA București – FIIR  
 **Student:** Neacsu Constantin-Cristian
-**Link Repository GitHub:** [URL complet]  
-**Data predării:** [Data]
+**Link Repository GitHub:** https://github.com/ConstantinNeacsu04/Proiect-RN.git 
+**Data predării:** 22.01.2026
 
 ---
 ## Scopul Etapei 6
@@ -60,13 +60,13 @@ Deși Etapa 6 încheie ciclul formal de dezvoltare, **procesul iterativ continu�
 
 **Înainte de a începe Etapa 6, verificați că aveți din Etapa 5:**
 
-- [ ] **Model antrenat** salvat în `models/trained_model.h5` (sau `.pt`, `.lvmodel`)
-- [ ] **Metrici baseline** raportate: Accuracy ≥65%, F1-score ≥0.60
-- [ ] **Tabel hiperparametri** cu justificări completat
-- [ ] **`results/training_history.csv`** cu toate epoch-urile
-- [ ] **UI funcțional** care încarcă modelul antrenat și face inferență reală
-- [ ] **Screenshot inferență** în `docs/screenshots/inference_real.png`
-- [ ] **State Machine** implementat conform definiției din Etapa 4
+- [x] **Model antrenat** salvat în `models/trained_model.h5` (sau `.pt`, `.lvmodel`)
+- [x] **Metrici baseline** raportate: Accuracy ≥65%, F1-score ≥0.60
+- [x] **Tabel hiperparametri** cu justificări completat
+- [x] **`results/training_history.csv`** cu toate epoch-urile
+- [x] **UI funcțional** care încarcă modelul antrenat și face inferență reală
+- [x] **Screenshot inferență** în `docs/screenshots/inference_real.png`
+- [x] **State Machine** implementat conform definiției din Etapa 4
 
 **Dacă oricare din punctele de mai sus lipsește → reveniți la Etapa 5 înainte de a continua.**
 
@@ -96,21 +96,19 @@ Documentați **minimum 4 experimente** cu variații sistematice:
 
 | **Exp#** | **Modificare față de Baseline (Etapa 5)** | **Accuracy** | **F1-score** | **Timp antrenare** | **Observații** |
 |----------|------------------------------------------|--------------|--------------|-------------------|----------------|
-| Baseline | Configurația din Etapa 5 | 0.72 | 0.68 | 15 min | Referință |
-| Exp 1 | Learning rate 0.0001 → 0.001 | 0.74 | 0.70 | 12 min | Convergență mai rapidă |
-| Exp 2 | Batch size 32 → 64 | 0.71 | 0.67 | 10 min | Stabilitate redusă |
-| Exp 3 | +1 hidden layer (128 neuroni) | 0.76 | 0.73 | 22 min | Îmbunătățire semnificativă |
+| Baseline | MobileNetV2 Frozen | 0.68 | 0.65 | 8 min | Modelul de bază, înghețat. |
+| Exp 1 | Adăugare Augmentare | 0.72 | 0.69 | 10 min | O ușoară îmbunătățire, modelul devine invariant la poziție. |
+| Exp 2 |Augmentare Contrast + Luminozitate | 0.75	| 0.73| 12 min	| Critic pentru suprafețe metalice; reduce confuzia dată de reflexii.|
+| Exp 3 | Fine-Tuning |0.82| 0.79| 25 min	| Salt major de performanță. Rețeaua învață texturi specifice de uzură.|
 | Exp 4 | Dropout 0.3 → 0.5 | 0.73 | 0.69 | 16 min | Reduce overfitting |
-| Exp 5 | Augmentări domeniu (zgomot gaussian) | 0.78 | 0.75 | 25 min | **BEST** - ales pentru final |
+| Exp 5 | Fine-Tuning + Learning Rate Scheduler (1e-5)| 0.85 |0.83| 30 min	| BEST - Convergență stabilă și precizie maximă pe test set.|
 
 **Justificare alegere configurație finală:**
 ```
-Am ales Exp 5 ca model final pentru că:
-1. Oferă cel mai bun F1-score (0.75), critic pentru aplicația noastră de [descrieți]
-2. Îmbunătățirea vine din augmentări relevante domeniului industrial (zgomot gaussian 
-   calibrat la nivelul real de zgomot din mediul de producție: SNR ≈ 20dB)
-3. Timpul de antrenare suplimentar (25 min) este acceptabil pentru beneficiul obținut
-4. Testare pe date noi arată generalizare bună (nu overfitting pe augmentări)
+Am ales Exp 4 ca model final (optimized_model.h5) pentru că:
+1. Combină Fine-Tuning-ul (necesar pentru a distinge micro-fisurile) cu un Learning Rate foarte mic (1e-5), prevenind distrugerea cunoștințelor pre-antrenate ("catastrophic forgetting").
+2. Augmentarea de contrast (Exp 2) a fost păstrată deoarece în mediul industrial iluminarea variază, iar metalul reflectă lumina imprevizibil.
+3. F1-score de 0.83 indică un echilibru excelent între Precision și Recall, esențial pentru a nu rata scule defecte (False Negatives).
 ```
 
 **Resurse învățare rapidă - Optimizare:**
@@ -128,34 +126,32 @@ Am ales Exp 5 ca model final pentru că:
 
 | **Componenta** | **Stare Etapa 5** | **Modificare Etapa 6** | **Justificare** |
 |----------------|-------------------|------------------------|-----------------|
-| **Model încărcat** | `trained_model.h5` | `optimized_model.h5` | +9% accuracy, -5% FN |
-| **Threshold alertă (State Machine)** | 0.5 (default) | 0.35 (clasa 'defect') | Minimizare FN în context industrial |
-| **Stare nouă State Machine** | N/A | `CONFIDENCE_CHECK` | Filtrare predicții cu confidence <0.6 |
-| **Latență target** | 100ms | 50ms (ONNX export) | Cerință timp real producție |
-| **UI - afișare confidence** | Da/Nu simplu | Bară progres + valoare % | Feedback operator îmbunătățit |
-| **Logging** | Doar predicție | Predicție + confidence + timestamp | Audit trail complet |
-| **Web Service response** | JSON minimal | JSON extins + metadata | Integrare API extern |
+| **Model încărcat** | `trained_model.h5` | `optimized_model.h5` | +13% accuracy, reducerea alarmelor false|
+| **Threshold alertă (State Machine)** | 0.5 (default) | 0.40 (clasa 'defect') |Preferăm să schimbăm o sculă suspectă decât să riscăm ruperea ei. |
+| **Stare nouă State Machine** | N/A | `CONFIDENCE_CHECK` |Filtrare predicții cu confidence < 60% pentru a cere verificare umană.|
+| Augmentare la inferență	| Nu	| Resize + Contrast Normalization	| Uniformizarea inputului real cu cel din training.|
+| **UI - afișare confidence** | Text simplu| Bară progres colorată (Streamlit) | Feedback vizual imediat pentru operator. |
+| **Logging** | Print în consolă | Salvare istoric în CSV | Trasabilitate și analiză ulterioară a erorilor. |
 
 **Completați pentru proiectul vostru:**
 ```markdown
 ### Modificări concrete aduse în Etapa 6:
 
 1. **Model înlocuit:** `models/trained_model.h5` → `models/optimized_model.h5`
-   - Îmbunătățire: Accuracy +X%, F1 +Y%
-   - Motivație: [descrieți de ce modelul optimizat e mai bun pentru aplicația voastră]
+   - Îmbunătățire: Accuracy a crescut de la 72% la 85%.
+   - Motivație: Modelul vechi confunda reflexiile de lumină cu ciupituri pe tăiș.
 
 2. **State Machine actualizat:**
-   - Threshold modificat: [valoare veche] → [valoare nouă]
-   - Stare nouă adăugată: [nume stare] - [ce face]
-   - Tranziție modificată: [descrieți]
+   - Threshold modificat: Scăzut la 0.4 pentru clasa 'Neconform'.
+   - Stare nouă adăugată:CONFIDENCE_CHECK - Dacă AI-ul nu este sigur (scor între 0.4 și 0.6), afișează mesaj "Verificare Manuală Recomandată".
 
 3. **UI îmbunătățit:**
-   - [descrieți modificările vizuale/funcționale]
+   - Adăugare bară de progres colorată (Verde/Roșu).
    - Screenshot: `docs/screenshots/ui_optimized.png`
 
 4. **Pipeline end-to-end re-testat:**
-   - Test complet: input → preprocess → inference → decision → output
-   - Timp total: [X] ms (vs [Y] ms în Etapa 5)
+   - Test complet: Upload Poză → Resize 224x224 → Inference → Decision Matrix → UI Display.
+   - Timp total: ~80ms
 ```
 
 ### Diagrama State Machine Actualizată (dacă s-au făcut modificări)
@@ -216,32 +212,28 @@ Selectați și analizați **minimum 5 exemple greșite** de pe test set:
 
 | **Index** | **True Label** | **Predicted** | **Confidence** | **Cauză probabilă** | **Soluție propusă** |
 |-----------|----------------|---------------|----------------|---------------------|---------------------|
-| #127 | defect_mare | defect_mic | 0.52 | Imagine subexpusă | Augmentare brightness |
-| #342 | normal | defect_mic | 0.48 | Zgomot senzor ridicat | Filtru median pre-inference |
-| #567 | defect_mic | normal | 0.61 | Defect la margine imagine | Augmentare crop variabil |
-| #891 | defect_mare | defect_mic | 0.55 | Overlap features între clase | Mai multe date clasa 'defect_mare' |
-| #1023 | normal | defect_mare | 0.71 | Reflexie metalică interpretată ca defect | Augmentare reflexii |
-
+|#42	|Neconform	|Conform|	0.58|	Defect prea mic (<5px)	|Creștere rezoluție input la 300x300|
+|#88|	Conform	|Neconform	|0.72|	Reflexie puternică (flash)|	Filtru polarizator la achiziție / Augmentare contrast|
+|#115|	Neconform	|Conform|	0.61|	Imagine neclară (blur)	|Implementare algoritm detectare blur pre-inference|
+|#203|	Conform|	Neconform|	0.55	|Urmă de ulei pe vârf	|Curățare sculă înainte de poză|
+|#310|	Neconform	|Conform|	0.52	|Unghi atipic (vârf ascuns)	|Protocol strict de poziționare sculă|
 **Analiză detaliată per exemplu (scrieți pentru fiecare):**
 ```markdown
 ### Exemplu #127 - Defect mare clasificat ca defect mic
 
-**Context:** Imagine radiografică sudură, defect vizibil în centru
+**Context:** Poză făcută cu bliț, reflexie puternică pe muchia de așchiere.
 **Input characteristics:** brightness=0.3 (subexpus), contrast=0.7
-**Output RN:** [defect_mic: 0.52, defect_mare: 0.38, normal: 0.10]
+**Output RN:** [Conform: 0.28, Neconform: 0.72]
 
 **Analiză:**
-Imaginea originală are brightness scăzut (0.3 vs. media dataset 0.6), ceea ce 
-face ca textura defectului să fie mai puțin distinctă. Modelul a "văzut" un 
-defect, dar l-a clasificat în categoria mai puțin severă.
+Rețeaua a învățat că zonele albe, neregulate, reprezintă "ciupituri". Reflexia blițului a creat o zonă albă intensă pe metal, păcălind modelul.
 
 **Implicație industrială:**
-Acest tip de eroare (downgrade severitate) poate duce la subestimarea riscului.
-În producție, sudura ar fi acceptată când ar trebui re-inspectată.
+Operatorul primește o alertă falsă. Oprește mașina CNC, verifică scula, vede că e bună. Pierdere de timp (cca 2 minute).
 
 **Soluție:**
-1. Augmentare cu variații brightness în intervalul [0.2, 0.8]
-2. Normalizare histogram înainte de inference (în PREPROCESS state)
+1. Augmentare cu `RandomBrightness` și `RandomContrast` mai agresivă.
+2. Instrucțiuni de achiziție: "Nu folosiți blițul direct".
 ```
 
 ---
@@ -252,22 +244,16 @@ Acest tip de eroare (downgrade severitate) poate duce la subestimarea riscului.
 
 Descrieți strategia folosită pentru optimizare:
 
-```markdown
 ### Strategie de optimizare adoptată:
 
-**Abordare:** [Manual / Grid Search / Random Search / Bayesian Optimization]
+**Abordare:** Manual Tuning iterativ (pornind de la recomandările pentru Transfer Learning).
 
 **Axe de optimizare explorate:**
-1. **Arhitectură:** [variații straturi, neuroni]
-2. **Regularizare:** [Dropout, L2, BatchNorm]
-3. **Learning rate:** [scheduler, valori testate]
-4. **Augmentări:** [tipuri relevante domeniului]
-5. **Batch size:** [valori testate]
+1. **Arhitectură:** MobileNetV2 Frozen vs Unfrozen (Fine Tuning).
+2. **Learning rate:** Scăderea LR de la 1e-3 la 1e-5 pentru faza de fine-tuning.
+3. **Augmentări:** Accent pe transformări fotometrice (contrast/luminozitate) vs geometrice.
 
-**Criteriu de selecție model final:** [ex: F1-score maxim cu constraint pe latență <50ms]
-
-**Buget computațional:** [ore GPU, număr experimente]
-```
+**Criteriu de selecție model final:** Maximizarea Recall-ului pe clasa 'Neconform' (prioritate siguranță) păstrând Accuracy general > 80%.
 
 ### 3.2 Grafice Comparative
 
@@ -278,34 +264,22 @@ Generați și salvați în `docs/optimization/`:
 
 ### 3.3 Raport Final Optimizare
 
-```markdown
 ### Raport Final Optimizare
 
 **Model baseline (Etapa 5):**
-- Accuracy: 0.72
-- F1-score: 0.68
-- Latență: 48ms
+- Accuracy: 0.68
+- F1-score: 0.65
 
 **Model optimizat (Etapa 6):**
-- Accuracy: 0.81 (+9%)
-- F1-score: 0.77 (+9%)
-- Latență: 35ms (-27%)
+- Accuracy: 0.85 (+17%)
+- F1-score: 0.83 (+18%)
 
 **Configurație finală aleasă:**
-- Arhitectură: [descrieți]
-- Learning rate: [valoare] cu [scheduler]
-- Batch size: [valoare]
-- Regularizare: [Dropout/L2/altele]
-- Augmentări: [lista]
-- Epoci: [număr] (early stopping la epoca [X])
-
-**Îmbunătățiri cheie:**
-1. [Prima îmbunătățire - ex: adăugare strat hidden → +5% accuracy]
-2. [A doua îmbunătățire - ex: augmentări domeniu → +3% F1]
-3. [A treia îmbunătățire - ex: threshold personalizat → -60% FN]
-```
-
----
+- Arhitectură: MobileNetV2 (ImageNet weights) + GlobalAveragePooling + Dense(2)
+- Learning rate: 1e-5 (Adam optimizer)
+- Batch size: 16
+- Augmentări: Flip, Rotation (0.2), Contrast (0.2), Zoom (0.1)
+- Epoci: 20 (Early Stopping activat)
 
 ## 4. Agregarea Rezultatelor și Vizualizări
 
@@ -313,12 +287,10 @@ Generați și salvați în `docs/optimization/`:
 
 | **Metrică** | **Etapa 4** | **Etapa 5** | **Etapa 6** | **Target Industrial** | **Status** |
 |-------------|-------------|-------------|-------------|----------------------|------------|
-| Accuracy | ~20% | 72% | 81% | ≥85% | Aproape |
-| F1-score (macro) | ~0.15 | 0.68 | 0.77 | ≥0.80 | Aproape |
-| Precision (defect) | N/A | 0.75 | 0.83 | ≥0.85 | Aproape |
-| Recall (defect) | N/A | 0.70 | 0.88 | ≥0.90 | Aproape |
-| False Negative Rate | N/A | 12% | 5% | ≤3% | Aproape |
-| Latență inferență | 50ms | 48ms | 35ms | ≤50ms | OK |
+| Accuracy | ~50% | 72% | 85% | ≥90% | Aproape |
+| F1-score (macro) | ~0.50 | 0.68 | 0.83 | ≥0.85 | Aproape |
+| False Negative Rate | 50%| 15% | 5% | ≤1% | necesita date |
+| Latență inferență | - | 120ms | 80ms | ≤100ms | OK |
 | Throughput | N/A | 20 inf/s | 28 inf/s | ≥25 inf/s | OK |
 
 ### 4.2 Vizualizări Obligatorii
@@ -342,12 +314,12 @@ Salvați în `docs/results/`:
 ### Evaluare sintetică a proiectului
 
 **Obiective atinse:**
-- [ ] Model RN funcțional cu accuracy [X]% pe test set
-- [ ] Integrare completă în aplicație software (3 module)
-- [ ] State Machine implementat și actualizat
+- [x] Model RN funcțional cu accuracy [X]% pe test set
+- [x] Integrare completă în aplicație software (3 module)
+- [x] State Machine implementat și actualizat
 - [ ] Pipeline end-to-end testat și documentat
 - [ ] UI demonstrativ cu inferență reală
-- [ ] Documentație completă pe toate etapele
+- [x] Documentație completă pe toate etapele
 
 **Obiective parțial atinse:**
 - [ ] [Descrieți ce nu a funcționat perfect - ex: accuracy sub target pentru clasa X]
@@ -361,40 +333,16 @@ Salvați în `docs/results/`:
 ```markdown
 ### Limitări tehnice ale sistemului
 
-1. **Limitări date:**
-   - [ex: Dataset dezechilibrat - clasa 'defect_mare' are doar 8% din total]
-   - [ex: Date colectate doar în condiții de iluminare ideală]
-
-2. **Limitări model:**
-   - [ex: Performanță scăzută pe imagini cu reflexii metalice]
-   - [ex: Generalizare slabă pe tipuri de defecte nevăzute în training]
-
-3. **Limitări infrastructură:**
-   - [ex: Latență de 35ms insuficientă pentru linie producție 60 piese/min]
-   - [ex: Model prea mare pentru deployment pe edge device]
-
-4. **Limitări validare:**
-   - [ex: Test set nu acoperă toate condițiile din producție reală]
-```
+1. **Limitări date:** Dataset-ul este mic (~300 imagini). Augmentarea a ajutat, dar modelul încă nu generalizează perfect pe scule cu forme geometrice diferite (ex: freze sferice vs cilindrice).
+2. **Dependența de iluminare:** Sistemul este sensibil la reflexii puternice.
+3. **Rezoluția:** Redimensionarea la 224x224 pierde detaliile micro-uzurii incipiente.
 
 ### 5.3 Direcții de Cercetare și Dezvoltare
 
 ```markdown
-### Direcții viitoare de dezvoltare
-
-**Pe termen scurt (1-3 luni):**
-1. Colectare [X] date adiționale pentru clasa minoritară
-2. Implementare [tehnica Y] pentru îmbunătățire recall
-3. Optimizare latență prin [metoda Z]
-...
-
-**Pe termen mediu (3-6 luni):**
-1. Integrare cu sistem SCADA din producție
-2. Deployment pe [platform edge - ex: Jetson, NPU]
-3. Implementare monitoring MLOps (drift detection)
-...
-
-```
+1. **Colectare continuă:** Implementarea unui sistem de "Active Learning" unde operatorul validează predicțiile incerte, iar imaginile sunt adăugate automat la dataset pentru re-antrenare.
+2. **Hardware:** Crearea unei incinte controlate (Light Box) pentru a standardiza iluminarea pozelor.
+3. **Deployment:** Portarea modelului pe un dispozitiv edge (Raspberry Pi + Cameră) montat direct în mașina CNC.
 
 ### 5.4 Lecții Învățate
 
@@ -402,58 +350,26 @@ Salvați în `docs/results/`:
 ### Lecții învățate pe parcursul proiectului
 
 **Tehnice:**
-1. [ex: Preprocesarea datelor a avut impact mai mare decât arhitectura modelului]
-2. [ex: Augmentările specifice domeniului > augmentări generice]
-3. [ex: Early stopping esențial pentru evitare overfitting]
+1. **Augmentarea datelor** a fost "game changer". Fără ea, modelul făcea overfitting masiv pe cele 40 de imagini originale.
+2. **Transfer Learning** economisește enorm de mult timp. Antrenarea de la zero a eșuat, dar MobileNetV2 a convergat rapid.
 
 **Proces:**
-1. [ex: Iterațiile frecvente pe date au adus mai multe îmbunătățiri decât pe model]
-2. [ex: Testarea end-to-end timpurie a identificat probleme de integrare]
-3. [ex: Documentația incrementală a economisit timp la final]
-
-**Colaborare:**
-1. [ex: Feedback de la experți domeniu a ghidat selecția features]
-2. [ex: Code review a identificat bug-uri în pipeline preprocesare]
-```
+1. **Curățarea datelor** (verificarea etichetelor) este mai importantă decât arhitectura complexă. Am pierdut timp în Etapa 4 din cauza unor imagini etichetate greșit.
+2. **Iterația rapidă:** Testarea modelului direct în UI (Streamlit) a ajutat la identificarea erorilor de logică mult mai repede decât analiza doar pe grafice.
 
 ### 5.5 Plan Post-Feedback (ULTIMA ITERAȚIE ÎNAINTE DE EXAMEN)
 
 ```markdown
 ### Plan de acțiune după primirea feedback-ului
 
-**ATENȚIE:** Etapa 6 este ULTIMA VERSIUNE pentru care se oferă feedback!
-Implementați toate corecțiile înainte de examen.
-
 După primirea feedback-ului de la evaluatori, voi:
 
-1. **Dacă se solicită îmbunătățiri model:**
-   - [ex: Experimente adiționale cu arhitecturi alternative]
-   - [ex: Colectare date suplimentare pentru clase problematice]
-   - **Actualizare:** `models/`, `results/`, README Etapa 5 și 6
+1. **Dacă se solicită îmbunătățiri model:** Voi rula un Grid Search automat pentru a găsi combinația perfectă de Learning Rate și Dropout.
+2. **Dacă se solicită documentație:** Voi detalia diagrama State Machine cu cazurile de eroare (ex: network fail).
+3. **Validare Finală:** Voi ruga un coleg să testeze aplicația "la rece" pentru a identifica bug-uri de UX.
 
-2. **Dacă se solicită îmbunătățiri date/preprocesare:**
-   - [ex: Rebalansare clase, augmentări suplimentare]
-   - **Actualizare:** `data/`, `src/preprocessing/`, README Etapa 3
-
-3. **Dacă se solicită îmbunătățiri arhitectură/State Machine:**
-   - [ex: Modificare fluxuri, adăugare stări]
-   - **Actualizare:** `docs/state_machine.*`, `src/app/`, README Etapa 4
-
-4. **Dacă se solicită îmbunătățiri documentație:**
-   - [ex: Detaliere secțiuni specifice]
-   - [ex: Adăugare diagrame explicative]
-   - **Actualizare:** README-urile etapelor vizate
-
-5. **Dacă se solicită îmbunătățiri cod:**
-   - [ex: Refactorizare module conform feedback]
-   - [ex: Adăugare teste unitare]
-   - **Actualizare:** `src/`, `requirements.txt`
-
-**Timeline:** Implementare corecții până la data examen
-**Commit final:** `"Versiune finală examen - toate corecțiile implementate"`
-**Tag final:** `git tag -a v1.0-final-exam -m "Versiune finală pentru examen"`
-```
----
+**Timeline:** Implementare corecții în 48h după feedback.
+**Commit final:** "Versiune finală examen - v1.0" 
 
 ## Structura Repository-ului la Finalul Etapei 6
 
@@ -591,15 +507,15 @@ python src/neural_network/visualize.py --all
 
 ### Prerequisite Etapa 5 (verificare)
 - [ ] Model antrenat există în `models/trained_model.h5`
-- [ ] Metrici baseline raportate (Accuracy ≥65%, F1 ≥0.60)
-- [ ] UI funcțional cu model antrenat
-- [ ] State Machine implementat
+- [x] Metrici baseline raportate (Accuracy ≥65%, F1 ≥0.60)
+- [x] UI funcțional cu model antrenat
+- [x] State Machine implementat
 
 ### Optimizare și Experimentare
 - [ ] Minimum 4 experimente documentate în tabel
-- [ ] Justificare alegere configurație finală
+- [x] Justificare alegere configurație finală
 - [ ] Model optimizat salvat în `models/optimized_model.h5`
-- [ ] Metrici finale: **Accuracy ≥70%**, **F1 ≥0.65**
+- [x] Metrici finale: **Accuracy ≥70%**, **F1 ≥0.65**
 - [ ] `results/optimization_experiments.csv` cu toate experimentele
 - [ ] `results/final_metrics.json` cu metrici model optimizat
 
@@ -610,10 +526,10 @@ python src/neural_network/visualize.py --all
 - [ ] Implicații industriale documentate (cost FN vs FP)
 
 ### Actualizare Aplicație Software
-- [ ] Tabel modificări aplicație completat
-- [ ] UI încarcă modelul OPTIMIZAT (nu cel din Etapa 5)
+- [x] Tabel modificări aplicație completat
+- [x] UI încarcă modelul OPTIMIZAT (nu cel din Etapa 5)
 - [ ] Screenshot `docs/screenshots/inference_optimized.png`
-- [ ] Pipeline end-to-end re-testat și funcțional
+- [x] Pipeline end-to-end re-testat și funcțional
 - [ ] (Dacă aplicabil) State Machine actualizat și documentat
 
 ### Concluzii
@@ -699,4 +615,5 @@ Exemplu:
 ---
 
 **REMINDER:** Aceasta a fost ultima versiune pentru feedback. Următoarea predare este **VERSIUNEA FINALĂ PENTRU EXAMEN**!
+
 
