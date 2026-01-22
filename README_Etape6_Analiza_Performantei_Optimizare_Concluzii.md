@@ -2,7 +2,7 @@
 
 **Disciplina:** Rețele Neuronale  
 **Instituție:** POLITEHNICA București – FIIR  
-**Student:** [Nume Prenume]  
+**Student:** Neacsu Constantin-Cristian
 **Link Repository GitHub:** [URL complet]  
 **Data predării:** [Data]
 
@@ -699,3 +699,4 @@ Exemplu:
 ---
 
 **REMINDER:** Aceasta a fost ultima versiune pentru feedback. Următoarea predare este **VERSIUNEA FINALĂ PENTRU EXAMEN**!
+
