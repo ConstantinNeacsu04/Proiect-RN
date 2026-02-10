@@ -2,22 +2,22 @@
 
 | Câmp | Valoare |
 |------|---------|
-| **Student** | [Nume Prenume] |
-| **Grupa / Specializare** | [ex: 63xAB / Informatică Industrială] |
+| **Student** | Neacsu Constantin-Cristian |
+| **Grupa / Specializare** |  633AB / Informatică Industrială |
 | **Disciplina** | Rețele Neuronale |
 | **Instituție** | POLITEHNICA București – FIIR |
-| **Link Repository GitHub** | [URL complet - ex: https://github.com/username/proiect-rn] |
-| **Acces Repository** | [Public / Privat cu acces cadre didactice RN] |
-| **Stack Tehnologic** | [Python / LabVIEW / Mixt] |
-| **Domeniul Industrial de Interes (DII)** | [ex: Robotică / Producție / Medical / Energie / Automotive] |
-| **Tip Rețea Neuronală** | [CNN / MLP / RNN / LSTM / Autoencoder / etc.] |
+| **Link Repository GitHub** | https://github.com/ConstantinNeacsu04/Proiect-RN.git |
+| **Acces Repository** |  Privat cu acces cadre didactice RN |
+| **Stack Tehnologic** | Python |
+| **Domeniul Industrial de Interes (DII)** |  Producție  |
+| **Tip Rețea Neuronală** | CNN  |
 
 ### Rezultate Cheie (Versiunea Finală vs Etapa 6)
 
 | Metric | Țintă Minimă | Rezultat Etapa 6 | Rezultat Final | Îmbunătățire | Status |
 |--------|--------------|------------------|----------------|--------------|--------|
-| Accuracy (Test Set) | ≥70% | [X.XX%] | [X.XX%] | [+X.XX%] | [✓/✗] |
-| F1-Score (Macro) | ≥0.65 | [X.XX] | [X.XX] | [+X.XX] | [✓/✗] |
+| Accuracy (Test Set) | ≥70% | 85% | 85% | stabil | [✓] |
+| F1-Score (Macro) | ≥0.65 | 0.83 | 0.83 | [+X.XX] | [✓/✗] |
 | Latență Inferență | [target student] | [X ms] | [X ms] | [±X ms] | [✓/✗] |
 | Contribuție Date Originale | ≥40% | [X%] | [X%] | - | [✓/✗] |
 | Nr. Experimente Optimizare | ≥4 | [N] | [N] | - | [✓/✗] |
