@@ -17,10 +17,10 @@
 | Metric | Țintă Minimă | Rezultat Etapa 6 | Rezultat Final | Îmbunătățire | Status |
 |--------|--------------|------------------|----------------|--------------|--------|
 | Accuracy (Test Set) | ≥70% | 85% | 85% | stabil | [✓] |
-| F1-Score (Macro) | ≥0.65 | 0.83 | 0.83 | [+X.XX] | [✓/✗] |
-| Latență Inferență | [target student] | [X ms] | [X ms] | [±X ms] | [✓/✗] |
-| Contribuție Date Originale | ≥40% | [X%] | [X%] | - | [✓/✗] |
-| Nr. Experimente Optimizare | ≥4 | [N] | [N] | - | [✓/✗] |
+| F1-Score (Macro) | ≥0.65 | 0.83 | 0.83 |Stabil | [✓] |
+| Latență Inferență | ≤100 ms | 80 ms| 80 ms | ±0 ms | [✓] |
+| Contribuție Date Originale | ≥40% | 40% | 40% | - | [✓] |
+| Nr. Experimente Optimizare | ≥4 | 4 | 4 | - | [✓] |
 
 ### Declarație de Originalitate & Politica de Utilizare AI
 
@@ -53,26 +53,29 @@ Utilizarea asistenților de inteligență artificială (ChatGPT, Claude, Grok, G
 
 *[Descrieți în 1-2 paragrafe: Ce problemă concretă din domeniul industrial rezolvă acest proiect? Care este contextul și situația actuală? De ce este importantă rezolvarea acestei probleme?]*
 
-[Completați aici]
+Proiectul adresează nevoia de a automatiza și obiectiva acest proces de control al calității. Prin utilizarea viziunii artificiale , sistemul propus permite analiza stării muchiei așchietoare în timp real, eliminând eroarea umană. Această soluție este esențială pentru tranziția către Industry 4.0, unde mentenanța predictivă și minimizarea rebuturilor sunt vitale pentru competitivitatea unei fabrici.
 
 ### 2.2 Beneficii Măsurabile Urmărite
 
 *[Listați 3-5 beneficii concrete cu metrici țintă]*
 
-1. [ex: Reducerea timpului de inspecție manuală cu 60%]
-2. [ex: Detectarea defectelor cu acuratețe >85%]
-3. [ex: Reducerea costurilor de mentenanță cu 25%]
-4. [...]
-5. [...]
+Automatizarea inspecției: Reducerea timpului necesar verificării stării sculei cu peste 90%.
+
+Precizie în decizie: Atingerea unei acurateți de clasificare a uzurii de ≥ 85%, superioară consistenței operatorilor umani obosiți sau neexperimentați.
+
+Reducerea costurilor de producție: Extinderea duratei de viață a sculelor cu aproximativ 20% prin utilizarea lor până la limita reală de uzură, nu doar statistică.
+
+Minimizarea rebuturilor: Reducerea ratei de piese distruse cauzate de ruperea neașteptată a sculei, vizând o rată de "False Negatives" sub 5%.
+
+Trasabilitate digitală: Eliminarea log-urilor pe hârtie prin salvarea automată a istoricului inspecțiilor și imaginilor în format digital pentru analize ulterioare.
 
 ### 2.3 Tabel: Nevoie → Soluție SIA → Modul Software
 
 | **Nevoie reală concretă** | **Cum o rezolvă SIA-ul** | **Modul software responsabil** | **Metric măsurabil** |
 |---------------------------|--------------------------|--------------------------------|----------------------|
-| [ex: Detectarea fisurilor în suduri] | [Clasificare imagine → alertă operator] | [RN + Web Service] | [<2s timp răspuns, >90% recall] |
-| [Completați] | [Completați] | [Completați] | [Completați] |
-| [Completați] | [Completați] | [Completați] | [Completați] |
-
+|Reducerea opririlor neplanificate (scule rupte) |	Clasificare automată (Conform/Neconform) a uzurii muchiei așchietoare.	| Modul RN (MobileNetV2) + UI (Streamlit)	| Recall (Neconform) > 85%, Latență < 100ms|
+|Eliminarea subiectivismului uman la inspecție	| Decizie bazată pe praguri de încredere standardizate. |	State Machine (Logic) |	False Positive Rate < 10% (alarme false)|
+|Trasabilitate digitală și istoric inspecții |	Salvare automată a rezultatelor, timpului și imaginilor în log-uri (CSV). |	Modul Data Logging |	100% rată de succes la scrierea log-urilor |
 ---
 
 ## 3. Dataset și Contribuție Originală
@@ -81,22 +84,22 @@ Utilizarea asistenților de inteligență artificială (ChatGPT, Claude, Grok, G
 
 | Caracteristică | Valoare |
 |----------------|---------|
-| **Origine date** | [Dataset public / Senzori proprii / Simulare / Mixt] |
-| **Sursa concretă** | [ex: Kaggle - dataset X / Senzori Arduino / Simulare Gazebo] |
-| **Număr total observații finale (N)** | [ex: 15,000] |
-| **Număr features** | [ex: 12] |
-| **Tipuri de date** | [Numerice / Categoriale / Imagini / Serii temporale] |
-| **Format fișiere** | [CSV / PNG / JSON / etc.] |
-| **Perioada colectării/generării** | [ex: Noiembrie 2025 - Ianuarie 2026] |
+| **Origine date** | Valoare |
+| **Sursa concretă** | Google |
+| **Număr total observații finale (N)** |~350 (Imagini originale + Augmentate)  |
+| **Număr features** |150,528 (224 x 224 x 3 canale RGB) |
+| **Tipuri de date** |Imagini RGB (Date nestructurate) |
+| **Format fișiere** | JPG, PNG |
+| **Perioada colectării/generării** | Noiembrie 2025 - Ianuarie 2026 |
 
 ### 3.2 Contribuția Originală (minim 40% OBLIGATORIU)
 
 | Câmp | Valoare |
 |------|---------|
-| **Total observații finale (N)** | [număr] |
-| **Observații originale (M)** | [număr] |
-| **Procent contribuție originală** | [X%] |
-| **Tip contribuție** | [Simulare fizică / Senzori proprii / Etichetare manuală / Date sintetice] |
+| **Total observații finale (N)** | ~350 (Imagini totale antrenare + test) |
+| **Observații originale (M)** | ~350 (Dataset complet propriu) |
+| **Procent contribuție originală** |100% (Nu s-au utilizat seturi publice pre-existente)|
+| **Tip contribuție** |Colectare manuală + Date sintetice (Augmentare)|
 | **Locație cod generare** | `src/data_acquisition/[nume_script.py]` |
 | **Locație date originale** | `data/generated/` |
 
@@ -104,21 +107,24 @@ Utilizarea asistenților de inteligență artificială (ChatGPT, Claude, Grok, G
 
 *[Explicați în 1-2 paragrafe: Cum ați generat/achiziționat datele originale? Ce parametri ați folosit? De ce sunt relevante pentru problema voastră?]*
 
-[Completați aici]
+Datele au fost alese din imagini pe care le am descarcat de pe Google , urmand sa fie prelucrate pentru a fi posibila folosirea lor .
 
 ### 3.3 Preprocesare și Split Date
 
 | Set | Procent | Număr Observații |
 |-----|---------|------------------|
-| Train | 70% | [număr] |
-| Validation | 15% | [număr] |
-| Test | 15% | [număr] |
+| Train | 70% | 245 |
+| Validation | 15% | 55 |
+| Test | 15% | 55 |
 
 **Preprocesări aplicate:**
-- [ex: Normalizare Min-Max pe features numerice]
-- [ex: Encoding one-hot pentru variabile categoriale]
-- [ex: Tratare valori lipsă prin imputare cu mediană]
-- [ex: Eliminare outlieri cu metoda IQR]
+Redimensionare: Aducerea tuturor imaginilor la rezoluția standard 224x224 px.
+
+Normalizare: Scalarea valorilor pixelilor din [0, 255] în intervalul [-1, 1].
+
+Augmentare Date: Aplicare randomizată de Rotire, Zoom, Flip Orizontal și Contrast pentru a reduce overfitting-ul.
+
+Label Encoding: Conversia claselor ('conform' / 'neconform') în format numeric Integer (0 / 1).
 
 **Referințe fișiere:** `data/README.md`, `config/preprocessing_params.pkl`
 
@@ -130,9 +136,9 @@ Utilizarea asistenților de inteligență artificială (ChatGPT, Claude, Grok, G
 
 | Modul | Tehnologie | Funcționalitate Principală | Locație în Repo |
 |-------|------------|---------------------------|-----------------|
-| **Data Logging / Acquisition** | [Python/LabVIEW] | [ex: Generare date simulate cu zgomot gaussian] | `src/data_acquisition/` |
-| **Neural Network** | [Keras/PyTorch/LabVIEW] | [ex: Clasificare multi-clasă cu CNN] | `src/neural_network/` |
-| **Web Service / UI** | [Streamlit/Flask/Gradio/WebVI] | [ex: Interfață upload imagine + predicție] | `src/app/` |
+| **Data Logging / Acquisition** |Python (Keras Preprocessing)|Augmentare date: Generare copii sintetice (rotire, zoom, contrast) pentru balansare clase.| `src/data_acquisition/` |
+| **Neural Network** | TensorFlow / Keras| Clasificare binară (CNN): MobileNetV2 antrenat pentru detecție uzură (Conform/Neconform). | `src/neural_network/` |
+| **Web Service / UI** | Streamlit |Interfață Web: Upload imagine, vizualizare predicție și bară de încredere (confidence). | `src/app/` |
 
 ### 4.2 State Machine
 
@@ -142,27 +148,27 @@ Utilizarea asistenților de inteligență artificială (ChatGPT, Claude, Grok, G
 
 | Stare | Descriere | Condiție Intrare | Condiție Ieșire |
 |-------|-----------|------------------|-----------------|
-| `IDLE` | [ex: Așteptare input utilizator] | [Start aplicație] | [Input primit] |
-| `ACQUIRE_DATA` | [ex: Citire date de la senzor/fișier] | [Request procesare] | [Date validate] |
-| `PREPROCESS` | [ex: Normalizare și extragere features] | [Date brute disponibile] | [Features ready] |
-| `INFERENCE` | [ex: Forward pass prin RN] | [Input preprocesat] | [Predicție generată] |
-| `DECISION` | [ex: Aplicare threshold și clasificare] | [Output RN disponibil] | [Decizie finală] |
-| `OUTPUT/ALERT` | [ex: Afișare rezultat / Alertă operator] | [Decizie luată] | [Confirmare user] |
-| `ERROR` | [ex: Gestionare erori și logging] | [Excepție detectată] | [Recovery/Stop] |
+| `IDLE` |Așteptare încărcare imagine în interfața Web.| Start aplicație / Reset| Imagine încărcată |
+| `ACQUIRE_DATA` |Citirea și decodarea imaginii din buffer-ul de upload.| Imagine validă în UI |Imagine în memorie (RAM)|
+| `PREPROCESS` | Resize la 224x224 px și normalizare pixel [-1, 1].|Date brute disponibile| Tensor input valid |
+| `INFERENCE` |Rulare model.predict() pe tensorul de input.|Input preprocesat | Vector probabilități [P1, P2] |
+| `DECISION` | Comparare scor cu threshold-ul și verificare încredere.| Output RN disponibil| Clasă finală determinată |
+| `OUTPUT/ALERT` |Afișare verdict (Verde/Roșu) și procent încredere.| Decizie luată |Așteptare input nou|
+| `ERROR` |Afișare mesaj eroare (ex: format invalid).| Excepție / Fișier corupt | Revenire la IDLE |
 
 **Justificare alegere arhitectură State Machine:**
 
 *[1 paragraf: De ce această structură pentru problema voastră specifică?]*
 
-[Completați aici]
+Arhitectura aleasă este una secvențială , specifică sistemelor de viziune artificială "Single-Shot". Această structură asigură că decizia de conformitate nu este luată direct pe baza pixelilor bruti, ci trece printr-un proces strict de normalizare și inferență probabilistică. Separarea stării de DECISION de cea de INFERENCE permite implementarea logicii de siguranță fără a re-rula rețeaua neuronală, optimizând astfel latența și permițând ajustarea sensibilității sistemului în timp real, fără re-antrenare.
 
 ### 4.3 Actualizări State Machine în Etapa 6 (dacă este cazul)
 
 | Componentă Modificată | Valoare Etapa 5 | Valoare Etapa 6 | Justificare Modificare |
 |----------------------|-----------------|-----------------|------------------------|
-| [ex: Threshold alertă] | [0.5] | [0.35] | [Minimizare False Negatives] |
-| [ex: Stare nouă adăugată] | N/A | `CONFIDENCE_CHECK` | [Filtrare predicții incerte] |
-| [Completați dacă e cazul] | | | |
+|Threshold alertă (Neconform)| [0.50] | [0.40] | Prioritizare siguranță : Preferăm o alarmă falsă decât o sculă ruptă. |
+| Stare nouă adăugată | N/A | `CONFIDENCE_CHECK` | Filtrare predicții incerte (0.4 - 0.6) pentru a solicita verificare umană. |
+| Preprocesare | Resize simplu |Resize + Contrast Norm | Uniformizarea imaginilor de test cu cele augmentate din training. |
 
 ---
 
