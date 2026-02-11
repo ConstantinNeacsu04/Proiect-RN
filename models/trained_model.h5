@@ -1,0 +1,59 @@
+import os
+import tensorflow as tf
+from tensorflow.keras import layers, models
+import matplotlib.pyplot as plt
+
+# --- CONFIGURARE ---
+BASE_DIR = 'imagini antrenare'
+IMG_SIZE = (180, 180)
+BATCH_SIZE = 32
+EPOCHS = 15 # Pentru baseline 15 epoci sunt suficiente
+
+# 1. Incarcare Dataset
+train_ds = tf.keras.utils.image_dataset_from_directory(
+    BASE_DIR,
+    validation_split=0.2,
+    subset="training",
+    seed=123,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE
+)
+
+val_ds = tf.keras.utils.image_dataset_from_directory(
+    BASE_DIR,
+    validation_split=0.2,
+    subset="validation",
+    seed=123,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE
+)
+
+class_names = train_ds.class_names
+
+# 2. Definitie Arhitectura
+model = models.Sequential([
+    layers.Input(shape=(180, 180, 3)),
+    layers.Rescaling(1./255),
+    layers.Conv2D(32, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Conv2D(64, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Conv2D(128, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Dropout(0.5),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(len(class_names))
+])
+
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+# 3. Antrenare
+print("Incepe antrenarea modelului Baseline...")
+history = model.fit(train_ds, validation_data=val_ds, epochs=EPOCHS)
+
+# 4. Salvare cu numele specific
+model.save('trained_model.h5')
+print("\nGATA! Modelul antrenat baseline a fost salvat ca 'trained_model.h5'.")

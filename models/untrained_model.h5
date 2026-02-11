@@ -1,0 +1,52 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# --- 1. DEFINIREA ARHITECTURII (SCHELETULUI) ---
+# Aici construim "corpul" robotului, dar nu il invatam nimic inca.
+
+IMG_SIZE = (180, 180)
+num_classes = 2  # Conform vs Neconform
+
+data_augmentation = tf.keras.Sequential([
+  layers.RandomFlip("horizontal_and_vertical"),
+  layers.RandomRotation(0.2),
+])
+
+model = models.Sequential([
+    layers.Input(shape=(180, 180, 3)),
+    
+    # Augmentare (face parte din arhitectura)
+    data_augmentation,
+    
+    # Preprocesare
+    layers.Rescaling(1./255),
+    
+    # Extragere Trasaturi (Partea Convoluțională)
+    layers.Conv2D(32, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    
+    layers.Conv2D(64, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    
+    layers.Conv2D(128, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    
+    # Clasificare (Partea Densa)
+    layers.Dropout(0.5),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(num_classes)
+])
+
+# --- 2. COMPILAREA ---
+# Pregatim modelul pentru lucru (ii alegem optimizerul)
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+# --- 3. SALVAREA IMEDIATĂ (FĂRĂ ANTRENARE) ---
+nume_fisier = 'untrained_model.h5'
+model.save(nume_fisier)
+
+print(f"✅ GATA! Scheletul neantrenat a fost salvat ca '{nume_fisier}'.")
+print("Acest fișier conține doar structura matematică, fără 'cunoștințe'.")
