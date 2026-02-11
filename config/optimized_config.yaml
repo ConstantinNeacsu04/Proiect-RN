@@ -1,0 +1,27 @@
+import yaml
+
+config = {
+    'model_info': {
+        'name': 'CNC_Tool_Inspector_Optimized',
+        'version': '2.0',
+        'base_architecture': 'MobileNetV2'
+    },
+    'hyperparameters': {
+        'img_size': [180, 180],
+        'batch_size': 16,
+        'learning_rate_final': 0.00001,
+        'dropout': 0.5,
+        'optimizer': 'Adam'
+    },
+    'data_augmentation': {
+        'rotation_range': 30,
+        'horizontal_flip': True,
+        'zoom_range': 0.3
+    }
+}
+
+# Salvare în fișier YAML
+with open('optimized_config.yaml', 'w') as file:
+    yaml.dump(config, file, default_flow_style=False)
+
+print("✅ GATA! Fișierul 'optimized_config.yaml' a fost creat.")

@@ -1,0 +1,15 @@
+import pickle
+preprocessing_data = {
+    'img_size': (180, 180),
+    'class_names': ['conform', 'neconform'],
+    'rescale_factor': 1.0/255.0,
+    'input_shape': (180, 180, 3)
+}
+
+file_name = 'preprocessing_params.pkl'
+
+with open(file_name, 'wb') as f:
+    pickle.dump(preprocessing_data, f)
+
+print(f" GATA! Fișierul '{file_name}' a fost generat.")
+print("Acesta conține regulile de transformare a imaginilor pentru aplicația ta.")
