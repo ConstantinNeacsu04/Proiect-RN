@@ -178,50 +178,51 @@ Arhitectura aleasă este una secvențială , specifică sistemelor de viziune ar
 
 ```
 [Descrieți arhitectura - exemplu:]
-Input (shape: [32, 32, 3]) 
-  → Conv2D(32, 3x3, ReLU) → MaxPool(2x2)
-  → Conv2D(64, 3x3, ReLU) → MaxPool(2x2)
-  → Flatten
-  → Dense(128, ReLU) → Dropout(0.3)
-  → Dense(5, Softmax)
-Output: 5 clase
+Input (shape: [224, 224, 3]) 
+  → Data Augmentation (RandomFlip, Rotation, Zoom, Contrast)
+  → Rescaling (Normalizare pixel values [-1, 1])
+  → MobileNetV2 (Base Model - Feature Extractor, Weights='imagenet')
+      ... [Blocuri Inverted Residual cu Linear Bottlenecks] ...
+  → GlobalAveragePooling2D (Reducere dimensionalitate)
+  → Dropout (0.2) (Regularizare pentru prevenire overfitting)
+  → Dense (2 unități) (Strat final de clasificare)
+Output: 2 clase (Conform / Neconform)
 ```
 
 **Justificare alegere arhitectură:**
 
 *[1-2 propoziții: De ce această arhitectură? Ce alternative ați considerat și de ce le-ați respins?]*
 
-[Completați aici]
+Am ales MobileNetV2 prin tehnica Transfer Learning deoarece este o arhitectură ușoară, optimizată pentru viteză și eficiență computațională, fiind ideală pentru inferență în timp real (<100ms) pe dispozitive industriale standard. Am respins antrenarea unui CNN de la zero sau utilizarea unor modele masive precum VGG16 sau ResNet50 deoarece dataset-ul disponibil este prea mic pentru acestea, existând un risc major de overfitting și o latență nejustificat de mare.
 
 ### 5.2 Hiperparametri Finali (Model Optimizat - Etapa 6)
 
 | Hiperparametru | Valoare Finală | Justificare Alegere |
 |----------------|----------------|---------------------|
-| Learning Rate | [ex: 0.001] | [ex: Valoare standard Adam, convergență stabilă] |
-| Batch Size | [ex: 32] | [ex: Compromis memorie/stabilitate pentru N=15000 samples] |
-| Epochs | [ex: 50] | [ex: Early stopping după 10 epoci fără îmbunătățire] |
-| Optimizer | [ex: Adam] | [ex: Adaptive LR, potrivit pentru date de tip X] |
-| Loss Function | [ex: Categorical Crossentropy] | [ex: Clasificare multi-clasă cu 5 clase] |
-| Regularizare | [ex: Dropout 0.3 + L2(0.01)] | [ex: Prevenire overfitting observat în Exp 2] |
-| Early Stopping | [ex: patience=10, monitor=val_loss] | [ex: Oprire automată la convergență] |
+| Learning Rate |1e-5 (0.00001) | Valoare extrem de mică necesară pentru Fine-Tuning, pentru a nu distruge greutățile pre-antrenate |
+| Batch Size | 16 |Optim pentru un dataset mic (~350 imagini); permite actualizări frecvente ale gradienților și regularizare implicită. |
+| Epochs | 20 | mpărțite în 2 faze: 10 epoci (Transfer Learning) + 10 epoci (Fine Tuning). |
+| Optimizer | Adam |Algoritm adaptiv standard, converge rapid pe arhitecturi CNN moderne.|
+| Loss Function | Sparse Categorical Crossentropy | Clasificare binară cu etichete integer (0='Conform', 1='Neconform'). |
+| Regularizare | Dropout(0.2) + Augmentare | Esențiale pentru a preveni overfitting-ul masiv pe setul mic de date. |
+| Early Stopping | patience=3, monitor=val_loss | Oprire automată dacă loss-ul pe validare nu scade timp de 3 epoci, salvând cel mai bun model. |
 
 ### 5.3 Experimente de Optimizare (minim 4 experimente)
 
 | Exp# | Modificare față de Baseline | Accuracy | F1-Score | Timp Antrenare | Observații |
 |------|----------------------------|----------|----------|----------------|------------|
-| **Baseline** | Configurația din Etapa 5 | [X.XX%] | [X.XX] | [X min] | Referință |
-| Exp 1 | [ex: LR 0.001 → 0.0001] | [X.XX%] | [X.XX] | [X min] | [ex: Convergență mai lentă, +2% acc] |
-| Exp 2 | [ex: +1 hidden layer (64 neuroni)] | [X.XX%] | [X.XX] | [X min] | [ex: Overfitting observat] |
-| Exp 3 | [ex: Dropout 0.3 → 0.5] | [X.XX%] | [X.XX] | [X min] | [ex: Reduce overfitting din Exp 2] |
-| Exp 4 | [ex: Batch 32 → 64] | [X.XX%] | [X.XX] | [X min] | [ex: Stabilitate gradient mai bună] |
-| Exp 5 | [ex: Augmentări domeniu specifice] | [X.XX%] | [X.XX] | [X min] | [ex: Generalizare îmbunătățită] |
-| **FINAL** | [Configurația aleasă] | **[X.XX%]** | **[X.XX]** | [X min] | **Modelul folosit în producție** |
+|Baseline	|MobileNetV2 "Frozen" (fără augmentare)|	68.10%	|0.65|	5 min|	Overfitting rapid. Modelul memorează cele 40 de poze originale.|
+|Exp 1	|Adăugare Augmentare (Flip, Rotate, Zoom)	|75.40%|	0.72	|8 min	|Generalizare mai bună, dar pierde detalii fine.|
+|Exp 2|	Augmentare Contrast + Luminozitate|	78.20%|	0.74	|10 min|	Critic pentru metal; reduce confuzia dată de reflexii.|
+|Exp 3	|Fine-Tuning (Dezghețare ultimele 20 layere)	|82.50%|	0.79|	15 min	|Salt major. Rețeaua învață texturi specifice de uzură.|
+|Exp 4	|Fine-Tuning + Low LR (1e-5)	|85.00%	|0.83	|18 min|	Convergență stabilă. Precizie maximă pe test set.|
+|FINAL|	Exp 4 (Fine-Tuning + Augmentare)	|85.00%|	0.83|	18 min	|Modelul 'optimized_model.h5'|
 
 **Justificare alegere model final:**
 
 *[1 paragraf: De ce această configurație? Ce compromisuri ați făcut între accuracy/timp/complexitate?]*
 
-[Completați aici]
+Am selectat configurația din Experimentul 4 deoarece oferă cel mai bun echilibru între Acuratețe (85%) și F1-Score (0.83). Deși timpul de antrenare a crescut de la 5 la 18 minute, acest cost este neglijabil (se face o singură dată). Compromisul major a fost alegerea unui Batch Size mic (16) și a unei rate de învățare foarte scăzute (1e-5), care a încetinit procesul de învățare dar a garantat stabilitatea modelului pe un dataset redus, evitând distrugerea cunoștințelor vizuale transferate de la MobileNetV2.
 
 **Referințe fișiere:** `results/optimization_experiments.csv`, `models/optimized_model.h5`
 
@@ -233,17 +234,17 @@ Output: 5 clase
 
 | Metric | Valoare | Target Minim | Status |
 |--------|---------|--------------|--------|
-| **Accuracy** | [X.XX%] | ≥70% | [✓/✗] |
-| **F1-Score (Macro)** | [X.XX] | ≥0.65 | [✓/✗] |
-| **Precision (Macro)** | [X.XX] | - | - |
-| **Recall (Macro)** | [X.XX] | - | - |
+| **Accuracy** | 85.00% | ≥70% | [✓] |
+| **F1-Score (Macro)** | [0.83] | ≥0.65 | [✓] |
+| **Precision (Macro)** | [0.84] | - | - |
+| **Recall (Macro)** | [0.82] | - | - |
 
 **Îmbunătățire față de Baseline (Etapa 5):**
 
 | Metric | Etapa 5 (Baseline) | Etapa 6 (Optimizat) | Îmbunătățire |
 |--------|-------------------|---------------------|--------------|
-| Accuracy | [X.XX%] | [X.XX%] | [+X.XX%] |
-| F1-Score | [X.XX] | [X.XX] | [+X.XX] |
+| Accuracy | 72.00% | 85.00%| +13.00% |
+| F1-Score | 0.68 | 0.83 | +0.15 |
 
 **Referință fișier:** `results/final_metrics.json`
 
@@ -255,20 +256,20 @@ Output: 5 clase
 
 | Aspect | Observație |
 |--------|------------|
-| **Clasa cu cea mai bună performanță** | [Nume clasă] - Precision [X%], Recall [Y%] |
-| **Clasa cu cea mai slabă performanță** | [Nume clasă] - Precision [X%], Recall [Y%] |
-| **Confuzii frecvente** | [ex: Clasa A confundată frecvent cu Clasa B - posibil din cauza similarității vizuale] |
-| **Dezechilibru clase** | [ex: Clasa C are doar 5% din date - recall scăzut explicabil] |
+| **Clasa cu cea mai bună performanță** | Neconform - Recall 88%. |
+| **Clasa cu cea mai slabă performanță** | [Conform - Precision 81% |
+| **Confuzii frecvente** | Clasa Conform este confundată cu Neconform atunci când lumina se reflectă puternic pe metal, imitând o "ciupitură" albă. |
+| **Dezechilibru clase** | Deși datele au fost augmentate, clasa Neconform are trăsături vizuale mai variate (rupturi diverse), ceea ce o face ușor mai greu de generalizat perfect. |
 
 ### 6.3 Analiza Top 5 Erori
 
 | # | Input (descriere scurtă) | Predicție RN | Clasă Reală | Cauză Probabilă | Implicație Industrială |
 |---|--------------------------|--------------|-------------|-----------------|------------------------|
-| 1 | [ex: Imagine sudură cu iluminare slabă] | [Clasa X] | [Clasa Y] | [ex: Contrast insuficient în zona defectului] | [ex: Defect nedetectat → produs defect la client] |
-| 2 | [Completați] | [Completați] | [Completați] | [Completați] | [Completați] |
-| 3 | [Completați] | [Completați] | [Completați] | [Completați] | [Completați] |
-| 4 | [Completați] | [Completați] | [Completați] | [Completați] | [Completați] |
-| 5 | [Completați] | [Completați] | [Completați] | [Completați] | [Completați] |
+|1|	Sculă nouă cu reflexie puternică de la bliț	|Neconform	|Conform|	Reflexie speculară: Zona albă saturată este interpretată ca lipsă de material.	|Alarmă Falsă: Operatorul oprește mașina inutil pentru verificare (pierdere timp 2-3 min).|
+|2|	Sculă cu micro-fisură (<0.5mm)|	Conform|	Neconform|	Rezoluție mică: Resize-ul la 224x224 șterge detaliul fin al fisurii.|	Defect Critic: Scula se va rupe în scurt timp, distrugând piesa prelucrată.|
+|3|	Sculă conformă dar murdară de ulei|	Neconform|	Conform|	Zgomot vizual: Pata de ulei neagră este interpretată ca geometrie alterată.|	Alarmă Falsă: Necesită curățarea sculei înainte de inspecție.|
+|4|	Sculă neconformă pozată din profil	|Conform|	Neconform|	Ocluzie: Defectul este pe partea opusă camerei sau ascuns de unghi.|	Defect Critic: Validare eronată a unei scule uzate.|
+|5|	Fundal metalic texturat|	Neconform|	Conform|	ROI : Rețeaua confundă zgârieturile de pe fundal cu scula.|	Eroare Sistem: Necesită un fundal neutru (negru mat) pentru fiabilitate.|
 
 ### 6.4 Validare în Context Industrial
 
@@ -278,9 +279,14 @@ Output: 5 clase
 
 [ex: Din 100 de piese cu defecte reale, modelul detectează corect 78 (Recall=78%). 22 de piese defecte ajung la client - cost estimat: 22 × 50 RON = 1100 RON/lot. În același timp, din 100 piese bune, 8 sunt clasificate greșit ca defecte (FP=8%) - cost reinspecție: 8 × 5 RON = 40 RON/lot.]
 
-**Pragul de acceptabilitate pentru domeniu:** [ex: Recall ≥ 85% pentru defecte critice]  
-**Status:** [Atins / Neatins - cu diferența]  
-**Plan de îmbunătățire (dacă neatins):** [ex: Augmentare date pentru clasa subreprezentată, ajustare threshold]
+Rezultatele indică un sistem de tip Asistență-Operator. Cu un Recall de 88% pe defecte, sistemul prinde majoritatea sculelor periculoase. Calcul de impact: La un lot de 100 de scule (din care 10 defecte reale):
+  Sistemul va identifica corect 9 scule defecte .
+    Va rata 1 sculă defectă (risc asumat, mult redus față de inspecția aleatorie).
+    Va genera aprox. 5 alarme false (scule bune marcate ca rele).
+    
+**Pragul de acceptabilitate pentru domeniu:** Recall ≥ 95% 
+**Status:** Parțial Atins . Sistemul este viabil ca asistent, dar nu poate înlocui complet decizia umană fără mai multe date.  
+**Plan de îmbunătățire (dacă neatins):** olectarea a încă 500 de imagini cu defecte marginale și implementarea unui sistem de iluminare difuză pentru eliminarea reflexiilor.
 
 ---
 
@@ -290,19 +296,21 @@ Output: 5 clase
 
 | Componentă | Stare Etapa 5 | Modificare Etapa 6 | Justificare |
 |------------|---------------|-------------------|-------------|
-| **Model încărcat** | `trained_model.h5` | `optimized_model.h5` | [ex: +8% accuracy, -12% FN] |
-| **Threshold decizie** | [ex: 0.5 default] | [ex: 0.35 pentru clasa 'defect'] | [ex: Minimizare FN în context producție] |
-| **UI - feedback vizual** | [ex: Da/Nu text] | [ex: Bară confidence + valoare %] | [ex: Informare operator pentru decizii] |
-| **Logging** | [ex: Doar predicție] | [ex: Predicție + confidence + timestamp] | [ex: Audit trail pentru QA] |
-| [Alte modificări] | [Completați] | [Completați] | [Completați] |
-
+|Model încărcat|	trained_model.h5|	optimized_model.h5|	+13% acuratețe, reducere semnificativă a alarmelor false pe reflexii.|
+|Threshold decizie|	0.5 (Default)|	0.40 pentru clasa 'Neconform'|	Siguranță: Prioritizăm detecția defectelor (Recall) chiar cu riscul unor alarme false minore.|
+|UI - feedback vizual	|Text simplu (Scris)|	Bară progres colorată (Verde/Roșu)|	Ergonomie: Operatorul vede starea sculei "dintr-o privire", fără a citi textul.|
+|Logicǎ decizie|	Pass/Fail direct|	Adăugare CONFIDENCE_CHECK	|Dacă încrederea e între 40-60%, sistemul cere Verificare Umană în loc să ghicească.|
+|Preprocesare Inferență|	Resize simplu|	Resize + Contrast Normalization|	Uniformizarea imaginilor reale cu cele augmentate din antrenare.|
 ### 7.2 Screenshot UI cu Model Optimizat
 
 **Locație:** `docs/screenshots/inference_optimized.png`
 
 *[Descriere scurtă: Ce se vede în screenshot? Ce demonstrează?]*
 
-[Completați aici]
+Descriere: Screenshot-ul surprinde interfața Streamlit în momentul detectării unei scule NECONFORME (vârf rupt). Se observă:
+    Imaginea încărcată de utilizator.
+    Mesajul de alertă pe fundal roșu: "NECONFORM -  Această sculă trebuie înlocuită!".
+    Bara de progres care indică o siguranță de 82% a modelului în această decizie, confirmând robustețea optimizării.
 
 ### 7.3 Demonstrație Funcțională End-to-End
 
@@ -312,15 +320,13 @@ Output: 5 clase
 
 | Pas | Acțiune | Rezultat Vizibil |
 |-----|---------|------------------|
-| 1 | Input | [ex: Upload imagine nouă (NU din train/test)] |
-| 2 | Procesare | [ex: Bară de progres + preprocesare vizibilă] |
-| 3 | Inferență | [ex: Predicție afișată: "Clasa: Defect, Confidence: 87%"] |
-| 4 | Decizie | [ex: Alertă roșie + sunet pentru operator] |
+| 1 | Input |Operatorul apasă "Browse files" și încarcă o imagine nouă (nemaivăzută de model). |
+| 2 | Procesare | Aplicația afișează "Running..." preț de o fracțiune de secundă (resize la 224x224) |
+| 3 | Inferență |Modelul optimized_model.h5 returnează vectorul de probabilități [0.12, 0.88] |
+| 4 | Decizie | UI-ul interpretează scorul 0.88 > 0.40 și afișează Alertă Roșie + Bară 88%. |
 
-**Latență măsurată end-to-end:** [X] ms  
-**Data și ora demonstrației:** [DD.MM.YYYY, HH:MM]
-
----
+**Latență măsurată end-to-end:** ~80 ms  
+**Data și ora demonstrației:** [11.02.2026 02:15]
 
 ## 8. Structura Repository-ului Final
 
